@@ -1,0 +1,61 @@
+name: Rebrand And Redeploy Existing EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      department_name:
+        description: "Department full name (only required field)"
+        required: true
+      department_short_name:
+        description: "Optional crest initials (auto-generated if blank)"
+        required: false
+        default: ""
+      login_title:
+        description: "Optional login title override"
+        required: false
+        default: ""
+
+jobs:
+  rebrand-redeploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Rebrand and restart app on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${{ secrets.APP_DIR }}"
+            if [ -z "$APP_DIR" ]; then APP_DIR="/opt/mock-aus-gov-portal"; fi
+            DEPT='${{ inputs.department_name }}'
+            SHORT='${{ inputs.department_short_name }}'
+            LOGIN_TITLE='${{ inputs.login_title }}'
+
+            if [ -z "$SHORT" ]; then
+              SHORT=$(echo "$DEPT" | awk '{for(i=1;i<=NF;i++) printf toupper(substr($i,1,1))}')
+            fi
+
+            sudo APP_DIR="$APP_DIR" DEPT="$DEPT" SHORT="$SHORT" LOGIN_TITLE="$LOGIN_TITLE" node -e '
+              const fs = require("fs");
+              const path = process.env.APP_DIR + "/public/branding.json";
+              const cfg = JSON.parse(fs.readFileSync(path, "utf8"));
+              cfg.departmentFull = process.env.DEPT;
+              cfg.shortName = process.env.SHORT;
+              cfg.loginBlurb = `This system is restricted to authorised ${process.env.DEPT} personnel. Unauthorised access is prohibited.`;
+              if (process.env.LOGIN_TITLE && process.env.LOGIN_TITLE.trim()) {
+                cfg.loginTitle = process.env.LOGIN_TITLE.trim();
+              }
+              fs.writeFileSync(path, JSON.stringify(cfg, null, 2) + "\n");
+            '
+
+            sudo systemctl restart gov-portal
+            sudo systemctl --no-pager --full status gov-portal | sed -n "1,12p"
+

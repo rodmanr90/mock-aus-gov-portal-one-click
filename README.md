@@ -9,6 +9,7 @@ If you want the easiest click-by-click guide, read:
 - `STEP_BY_STEP_GUIDE.md`
 - `GITHUB_ACTIONS_SETUP.md` (automatic deploys)
 - `ONE_CLICK_DEPLOY.md` (single-button full AWS provisioning + deploy)
+- `ONE_CLICK_DEPLOY.md` also includes one-field rebranding via Actions
 
 It includes:
 

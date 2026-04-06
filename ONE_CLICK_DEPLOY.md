@@ -2,6 +2,30 @@
 
 This guide gives you exactly what you asked for: trigger one GitHub Action and have it create a fresh EC2 and deploy the full app automatically.
 
+## Fast answer: Rebrand from a single GitHub field
+
+You now have a dedicated workflow:
+
+- `.github/workflows/rebrand-and-redeploy.yml`
+
+How to use it:
+
+1. Go to **Actions**
+2. Click **Rebrand And Redeploy Existing EC2**
+3. Click **Run workflow**
+4. Fill only one field:
+   - `department_name` (for example: `Department of Finance`)
+5. Run it
+
+That one field updates:
+
+- Department name across branding
+- Crest initials (auto-generated if you leave short name blank)
+- Login blurb
+- Then auto-restarts the app on EC2
+
+No code edits needed for normal rebrands.
+
 ## What the one-click workflow does
 
 Workflow: `.github/workflows/one-click-provision-and-deploy.yml`
@@ -88,6 +112,8 @@ Use a public repo for easiest setup. If private repo, ensure the EC2 host can cl
    - `aws_region` (e.g. `ap-southeast-2`)
    - `instance_type` (e.g. `t3.micro`)
    - `app_branch` (`main`)
+   - `department_name` (optional one-field branding during initial deploy)
+   - `department_short_name` (optional; auto-generated if blank)
    - `ssh_ingress_cidr` (prefer your public IP `/32`)
    - `http_ingress_cidr` (`0.0.0.0/0` for public demo)
 6. Click **Run workflow** again to confirm
@@ -114,6 +140,11 @@ When a new tenant is provisioned:
 5. Use output URL
 
 That is the full rebuild process.
+
+For later department changes on the same environment:
+
+6. Run **Rebrand And Redeploy Existing EC2**
+7. Enter only `department_name`
 
 ---
 
