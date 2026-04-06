@@ -10,6 +10,7 @@ If you want the easiest click-by-click guide, read:
 - `GITHUB_ACTIONS_SETUP.md` (automatic deploys)
 - `ONE_CLICK_DEPLOY.md` (single-button full AWS provisioning + deploy)
 - `ONE_CLICK_DEPLOY.md` also includes one-field rebranding via Actions
+- `NEW_TENANT_A_TO_Z.md` (complete beginner checklist for each new AWS tenant)
 
 It includes:
 
