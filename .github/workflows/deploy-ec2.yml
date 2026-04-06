@@ -1,0 +1,57 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Deploy app to EC2 over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            REPO_URL="${{ secrets.APP_REPO_URL }}"
+            BRANCH="${{ secrets.APP_BRANCH }}"
+            APP_USER="${{ secrets.APP_USER }}"
+            APP_DIR="${{ secrets.APP_DIR }}"
+            SERVER_NAME="${{ secrets.NGINX_SERVER_NAME }}"
+
+            if [ -z "$REPO_URL" ]; then
+              echo "APP_REPO_URL secret is missing."
+              exit 1
+            fi
+
+            if [ -z "$BRANCH" ]; then BRANCH="main"; fi
+            if [ -z "$APP_USER" ]; then APP_USER="ubuntu"; fi
+            if [ -z "$APP_DIR" ]; then APP_DIR="/opt/mock-aus-gov-portal"; fi
+            if [ -z "$SERVER_NAME" ]; then SERVER_NAME="_"; fi
+
+            if [ -d "$APP_DIR/.git" ]; then
+              echo "Existing app detected; running refresh."
+              sudo APP_DIR="$APP_DIR" APP_USER="$APP_USER" BRANCH="$BRANCH" bash "$APP_DIR/scripts/refresh-ec2.sh"
+            else
+              echo "No app found; running first-time bootstrap."
+              TMP_DIR="/tmp/mock-aus-gov-portal-bootstrap"
+              rm -rf "$TMP_DIR"
+              git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TMP_DIR"
+              sudo bash "$TMP_DIR/scripts/bootstrap-ec2.sh" \
+                --repo-url "$REPO_URL" \
+                --app-user "$APP_USER" \
+                --app-dir "$APP_DIR" \
+                --branch "$BRANCH" \
+                --server-name "$SERVER_NAME"
+            fi
+

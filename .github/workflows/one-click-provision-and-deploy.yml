@@ -1,0 +1,118 @@
+name: One Click Provision And Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:
+        description: "AWS region (e.g. ap-southeast-2)"
+        required: true
+        default: "ap-southeast-2"
+      instance_type:
+        description: "EC2 instance type"
+        required: true
+        default: "t3.micro"
+      app_branch:
+        description: "Git branch to deploy"
+        required: true
+        default: "main"
+      ssh_ingress_cidr:
+        description: "CIDR allowed to SSH (22). Use your IP/32 when possible."
+        required: true
+        default: "0.0.0.0/0"
+      http_ingress_cidr:
+        description: "CIDR allowed to access app (80)"
+        required: true
+        default: "0.0.0.0/0"
+
+jobs:
+  provision-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      TF_IN_AUTOMATION: true
+      APP_DIR: /opt/mock-aus-gov-portal
+      APP_USER: ubuntu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        working-directory: infra/terraform
+        run: terraform init
+
+      - name: Terraform apply (create EC2 + security + key pair)
+        working-directory: infra/terraform
+        run: |
+          terraform apply -auto-approve \
+            -var="aws_region=${{ inputs.aws_region }}" \
+            -var="instance_type=${{ inputs.instance_type }}" \
+            -var="project_name=mock-gov-portal" \
+            -var="ec2_public_key=${{ secrets.EC2_PUBLIC_KEY }}" \
+            -var="ssh_ingress_cidr=${{ inputs.ssh_ingress_cidr }}" \
+            -var="http_ingress_cidr=${{ inputs.http_ingress_cidr }}"
+
+      - name: Capture instance output
+        id: tfout
+        working-directory: infra/terraform
+        run: |
+          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
+          echo "ec2_dns=$(terraform output -raw ec2_public_dns)" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for EC2 SSH readiness
+        run: |
+          ip="${{ steps.tfout.outputs.ec2_ip }}"
+          for i in {1..40}; do
+            if nc -z "$ip" 22; then
+              echo "SSH is reachable."
+              exit 0
+            fi
+            echo "Waiting for SSH on $ip (attempt $i/40)..."
+            sleep 10
+          done
+          echo "Timed out waiting for SSH."
+          exit 1
+
+      - name: Bootstrap app on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.tfout.outputs.ec2_ip }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -euo pipefail
+            REPO_URL="${{ secrets.APP_REPO_URL }}"
+            if [ -z "$REPO_URL" ]; then
+              echo "APP_REPO_URL secret is required."
+              exit 1
+            fi
+            TMP_DIR="/tmp/mock-gov-portal-bootstrap"
+            rm -rf "$TMP_DIR"
+            git clone --depth 1 --branch "${{ inputs.app_branch }}" "$REPO_URL" "$TMP_DIR"
+            cd "$TMP_DIR"
+            sudo bash scripts/bootstrap-ec2.sh \
+              --repo-url "$REPO_URL" \
+              --app-user "$APP_USER" \
+              --app-dir "$APP_DIR" \
+              --branch "${{ inputs.app_branch }}"
+
+      - name: Deployment summary
+        run: |
+          echo "App URL: http://${{ steps.tfout.outputs.ec2_ip }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "EC2 DNS: ${{ steps.tfout.outputs.ec2_dns }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Region: ${{ inputs.aws_region }}" >> "$GITHUB_STEP_SUMMARY"
+

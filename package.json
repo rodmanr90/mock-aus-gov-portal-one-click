@@ -1,0 +1,27 @@
+{
+  "name": "aus-gov-mock-portal",
+  "version": "1.0.0",
+  "description": "Mock Australian Government internal portal for security demo purposes.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "rebrand": "node scripts/rebrand.js"
+  },
+  "keywords": [
+    "australia",
+    "government",
+    "security-demo",
+    "portal"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

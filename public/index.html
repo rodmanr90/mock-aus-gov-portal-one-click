@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title id="page-title">Commonwealth of Australia – Secure Collaboration Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="gov-header">
+      <div class="gov-header-inner">
+        <div class="gov-brand">
+          <div class="gov-coa">
+            <span id="crest-initials">AU</span>
+          </div>
+          <div class="gov-brand-text">
+            <span id="brand-country" class="gov-brand-country">Commonwealth of Australia</span>
+            <span id="brand-system" class="gov-brand-system">Secure Collaboration Portal</span>
+          </div>
+        </div>
+        <div class="gov-env-pill">
+          INTERNAL USE ONLY
+        </div>
+      </div>
+    </header>
+
+    <main class="gov-main">
+      <section id="login-view" class="panel panel-centered">
+        <div class="login-crest-wrapper">
+          <div class="login-crest">
+            <div class="login-crest-inner">
+              <span id="login-crest-initials">PM&amp;C</span>
+            </div>
+          </div>
+          <div class="login-crest-text">
+            <div id="login-country" class="login-country">Commonwealth of Australia</div>
+            <div id="login-dept" class="login-dept">Department of the Prime Minister and Cabinet</div>
+          </div>
+        </div>
+        <h1 id="login-title">Privileged Access Sign‑in</h1>
+        <p id="login-blurb" class="muted">
+          This system is restricted to authorised Australian Government personnel. Unauthorised access is prohibited.
+        </p>
+        <form id="login-form" class="form">
+          <label>
+            Username
+            <input
+              id="username-input"
+              type="text"
+              placeholder="e.g. pm.albany"
+              autocomplete="username"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              id="password-input"
+              type="password"
+              placeholder="Enter password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <div class="form-footnote">
+            For demonstration purposes, use one of:
+            <code>pm.albany</code>,
+            <code>sec.dfence</code>,
+            <code>sen.estimates</code>.
+            Any password will be accepted.
+          </div>
+          <button type="submit" class="btn btn-primary">Sign in</button>
+          <div id="login-error" class="alert alert-error hidden"></div>
+        </form>
+      </section>
+
+      <section id="app-view" class="hidden">
+        <div class="top-bar">
+          <div>
+            <div class="user-line">
+              Signed in as
+              <span id="user-display"></span>
+            </div>
+            <div class="user-subline">
+              <span id="user-dept"></span>
+              ·
+              <span id="user-role"></span>
+            </div>
+          </div>
+          <div class="top-bar-actions">
+            <button id="admin-toggle" class="btn btn-ghost">Admin portal</button>
+            <button id="logout-btn" class="btn btn-secondary">Sign out</button>
+          </div>
+        </div>
+
+        <div class="layout">
+          <nav class="side-nav">
+            <h2>Workspaces</h2>
+            <button data-view="documents" class="nav-item nav-item-active">
+              Document registry
+            </button>
+            <button data-view="minutes" class="nav-item">
+              Meeting minutes
+            </button>
+            <button data-view="collab" class="nav-item">
+              File collaboration
+            </button>
+            <button data-view="senate" class="nav-item">
+              Senate estimates
+            </button>
+            <button data-view="admin" class="nav-item admin-only">
+              Admin – identities &amp; service accounts
+            </button>
+          </nav>
+
+          <section class="content">
+            <div id="view-documents" class="content-view">
+              <h2>Document registry</h2>
+              <p class="muted">
+                Indexed documents across portfolios, with indicative classifications for demonstration purposes.
+              </p>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Classification</th>
+                    <th>Owning agency</th>
+                    <th>Last updated</th>
+                  </tr>
+                </thead>
+                <tbody id="documents-body"></tbody>
+              </table>
+            </div>
+
+            <div id="view-minutes" class="content-view hidden">
+              <h2>Meeting minutes capture</h2>
+              <p class="muted">
+                Capture and file minutes against existing records. In this mock environment, data is not actually persisted.
+              </p>
+              <form id="minutes-form" class="form form-inline">
+                <label>
+                  Document ID
+                  <input id="minutes-doc-id" type="text" placeholder="e.g. DOC-2026-0001" required />
+                </label>
+                <label class="full-width">
+                  Summary of discussion
+                  <textarea
+                    id="minutes-summary"
+                    rows="4"
+                    placeholder="Key decisions, actions, follow‑ups…"
+                    required
+                  ></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary">File minutes</button>
+                <div id="minutes-status" class="alert hidden"></div>
+              </form>
+            </div>
+
+            <div id="view-collab" class="content-view hidden">
+              <h2>File collaboration (mock)</h2>
+              <p class="muted">
+                Illustrative view of concurrent access and sharing metadata. No real documents are stored.
+              </p>
+              <div class="grid">
+                <div class="panel">
+                  <h3>Active collaborators</h3>
+                  <ul class="list">
+                    <li>
+                      <strong>pm.albany</strong> – editing
+                      <em>National Cyber Security Posture Brief</em>
+                    </li>
+                    <li>
+                      <strong>sec.dfence</strong> – reviewing
+                      <em>Budget Estimates – Defence Capability</em>
+                    </li>
+                    <li>
+                      <strong>sen.estimates</strong> – commenting on
+                      <em>Emergency Management Coordination Minutes</em>
+                    </li>
+                  </ul>
+                </div>
+                <div class="panel">
+                  <h3>Sharing &amp; exposure highlights</h3>
+                  <ul class="list bullets">
+                    <li>Links shared to generic inboxes (e.g. <code>committee-admin@</code>)</li>
+                    <li>Service accounts with broad write access across portfolios</li>
+                    <li>Documents accessible from non-production environments</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div id="view-senate" class="content-view hidden">
+              <h2>Senate estimates schedule</h2>
+              <p class="muted">
+                Upcoming hearings and indicative portfolios. Data is illustrative only.
+              </p>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Committee</th>
+                    <th>Portfolio</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                  </tr>
+                </thead>
+                <tbody id="senate-body"></tbody>
+              </table>
+            </div>
+
+            <div id="view-admin" class="content-view hidden">
+              <h2>Admin – identities &amp; service accounts</h2>
+              <p class="muted">
+                Full visibility of user identities and privileged service accounts for demonstration purposes.
+              </p>
+              <div id="admin-warning" class="alert alert-error hidden"></div>
+              <div class="grid">
+                <div class="panel">
+                  <h3>User profiles</h3>
+                  <table class="table small">
+                    <thead>
+                      <tr>
+                        <th>Username</th>
+                        <th>Display name</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-users-body"></tbody>
+                  </table>
+                </div>
+                <div class="panel">
+                  <h3>Service accounts</h3>
+                  <table class="table small">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Privilege</th>
+                        <th>Scope</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-service-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="gov-footer">
+      <div>
+        <span>Internal demonstration environment</span>
+        <span class="footer-dot">•</span>
+        <span>Not connected to production systems</span>
+      </div>
+      <div class="footer-disclaimer">
+        This portal is a mock system designed for security awareness and posture assessment demonstrations.
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
