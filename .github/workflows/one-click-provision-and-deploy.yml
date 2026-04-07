@@ -1,6 +1,3 @@
-# Wait for any background apt processes to finish
-while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo "Waiting for other package manager..."; sleep 5; done
-
 name: One Click Provision And Deploy
 
 on:
