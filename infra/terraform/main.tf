@@ -1,31 +1,62 @@
-data "aws_vpc" "default" {
-  default = true
-}
+# 1. Create the VPC
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
-data "aws_subnets" "default_vpc_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+  tags = {
+    Name = "${var.project_name}-vpc"
   }
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
+# 2. Create a Public Subnet
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}a"
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+  tags = {
+    Name = "${var.project_name}-public-subnet"
   }
 }
 
+# 3. Create an Internet Gateway (so the EC2 can talk to the internet)
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.project_name}-igw"
+  }
+}
+
+# 4. Create a Route Table
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+
+  tags = {
+    Name = "${var.project_name}-public-rt"
+  }
+}
+
+# 5. Associate Route Table with Subnet
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+# 6. Update your Security Group to use the NEW VPC
 resource "aws_security_group" "app_sg" {
   name        = "${var.project_name}-sg"
-  description = "Security group for mock gov portal"
-  vpc_id      = data.aws_vpc.default.id
+  description = "Allow SSH and HTTP"
+  vpc_id      = aws_vpc.main.id # CRITICAL: Point this to the new VPC
 
   ingress {
-    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -33,7 +64,6 @@ resource "aws_security_group" "app_sg" {
   }
 
   ingress {
-    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -46,27 +76,19 @@ resource "aws_security_group" "app_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+# 7. Update your EC2 Instance to use the NEW Subnet
+resource "aws_instance" "app_server" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  key_name      = aws_key_pair.deployer.key_name
+
+  # CRITICAL: Point this to the new Subnet
+  subnet_id              = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   tags = {
-    Name = "${var.project_name}-sg"
+    Name = "${var.project_name}-instance"
   }
 }
-
-resource "aws_key_pair" "deployer" {
-  key_name   = "${var.project_name}-key"
-  public_key = var.ec2_public_key
-}
-
-resource "aws_instance" "app" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = var.instance_type
-  subnet_id                   = data.aws_subnets.default_vpc_subnets.ids[0]
-  vpc_security_group_ids      = [aws_security_group.app_sg.id]
-  key_name                    = aws_key_pair.deployer.key_name
-  associate_public_ip_address = true
-
-  tags = {
-    Name = "${var.project_name}-ec2"
-  }
-}
-
