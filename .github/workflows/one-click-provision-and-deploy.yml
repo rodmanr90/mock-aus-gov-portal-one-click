@@ -34,12 +34,10 @@ jobs:
       contents: read
 
     env:
-      # FIXES THE NODE.JS 20 WARNING
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       TF_IN_AUTOMATION: true
       APP_DIR: /opt/mock-aus-gov-portal
       APP_USER: ubuntu
-      # FALLBACKS: Uses inputs if manual, or defaults if it's a push
       AWS_REGION: ${{ github.event.inputs.aws_region || 'ap-southeast-2' }}
       INSTANCE_TYPE: ${{ github.event.inputs.instance_type || 't3.micro' }}
       SSH_CIDR: ${{ github.event.inputs.ssh_ingress_cidr || '0.0.0.0/0' }}
@@ -65,6 +63,7 @@ jobs:
         run: terraform init
 
       - name: Terraform apply
+        id: terraform
         working-directory: infra/terraform
         run: |
           terraform apply -auto-approve \
@@ -75,4 +74,58 @@ jobs:
             -var="ssh_ingress_cidr=${{ env.SSH_CIDR }}" \
             -var="http_ingress_cidr=${{ env.HTTP_CIDR }}"
 
-      # ... (remaining steps as before, but using ${{ env.BRANCH }} where needed)
+      - name: Capture instance output
+        id: tfout
+        working-directory: infra/terraform
+        run: |
+          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
+          echo "ec2_dns=$(terraform output -raw ec2_public_dns)" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for EC2 SSH readiness
+        run: |
+          ip="${{ steps.tfout.outputs.ec2_ip }}"
+          echo "Waiting for SSH on $ip..."
+          for i in {1..30}; do
+            if nc -z -w5 "$ip" 22; then
+              echo "SSH is reachable."
+              exit 0
+            fi
+            echo "Attempt $i: SSH not ready yet..."
+            sleep 10
+          done
+          exit 1
+
+      - name: Bootstrap app on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.tfout.outputs.ec2_ip }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            # Update and install basic requirements
+            sudo apt-get update -y
+            sudo apt-get install -y git nodejs npm
+
+            # Clean old directory if exists
+            sudo rm -rf ${{ env.APP_DIR }}
+            sudo mkdir -p ${{ env.APP_DIR }}
+            sudo chown ubuntu:ubuntu ${{ env.APP_DIR }}
+
+            # Clone and install
+            git clone -b ${{ env.BRANCH }} ${{ secrets.APP_REPO_URL }} ${{ env.APP_DIR }}
+            cd ${{ env.APP_DIR }}
+            npm install
+
+            # Start the app in the background using nohup 
+            # (or pm2 if you have it, but nohup is safer for a quick demo)
+            sudo fuser -k 3000/tcp || true
+            nohup npm start > app.log 2>&1 &
+            sleep 5
+            cat app.log
+
+      - name: Deployment summary
+        run: |
+          echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "- **App URL:** http://${{ steps.tfout.outputs.ec2_ip }}:3000" >> $GITHUB_STEP_SUMMARY
+          echo "- **IP Address:** ${{ steps.tfout.outputs.ec2_ip }}" >> $GITHUB_STEP_SUMMARY
