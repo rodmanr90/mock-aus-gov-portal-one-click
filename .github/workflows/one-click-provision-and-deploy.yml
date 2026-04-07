@@ -32,6 +32,10 @@ on:
         required: true
         default: "0.0.0.0/0"
 
+push:
+  branches:
+    - main
+
 jobs:
   provision-and-deploy:
     runs-on: ubuntu-latest
