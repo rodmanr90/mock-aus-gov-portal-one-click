@@ -1,3 +1,7 @@
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
 # --- DATA SOURCES ---
 data "aws_ami" "ubuntu" {
   most_recent = true
