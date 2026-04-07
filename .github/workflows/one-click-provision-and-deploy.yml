@@ -101,28 +101,40 @@ jobs:
           host: ${{ steps.tfout.outputs.ec2_ip }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }} # <--- MAKE SURE THIS IS HERE
+          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script: |
             set -e
-            # Update and install basic requirements
+            # 1. Install Node.js and NPM using the recommended bundle
             sudo apt-get update -y
-            sudo apt-get install -y git nodejs npm
+            sudo apt-get install -y ca-certificates curl gnupg
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+            
+            # This sets up the Node.js 20.x repository
+            NODE_MAJOR=20
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+            
+            sudo apt-get update -y
+            sudo apt-get install nodejs -y  # This installs both node and npm
 
-            # Clean old directory if exists
+            # 2. Setup Directory
             sudo rm -rf ${{ env.APP_DIR }}
             sudo mkdir -p ${{ env.APP_DIR }}
             sudo chown ubuntu:ubuntu ${{ env.APP_DIR }}
 
-            # Clone and install
+            # 3. Clone and Install
             git clone -b ${{ env.BRANCH }} ${{ secrets.APP_REPO_URL }} ${{ env.APP_DIR }}
             cd ${{ env.APP_DIR }}
             npm install
 
-            # Start the app in the background using nohup 
-            # (or pm2 if you have it, but nohup is safer for a quick demo)
+            # 4. Start the app
+            # Kill anything on 3000, then start fresh
             sudo fuser -k 3000/tcp || true
             nohup npm start > app.log 2>&1 &
+            
+            # Give it a second to generate the log, then show it
             sleep 5
+            echo "--- App Log Output ---"
             cat app.log
 
       - name: Deployment summary
