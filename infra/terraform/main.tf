@@ -9,12 +9,6 @@ data "aws_ami" "ubuntu" {
 }
 
 # --- VARIABLES ---
-variable "aws_region" {}
-variable "instance_type" {}
-variable "project_name" {}
-variable "ec2_public_key" {}
-variable "ssh_ingress_cidr" {}
-variable "http_ingress_cidr" {}
 
 # --- NETWORK ---
 resource "aws_vpc" "main" {
