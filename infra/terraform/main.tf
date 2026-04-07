@@ -47,7 +47,8 @@ resource "aws_route_table_association" "public_assoc" {
 
 # --- SECURITY & KEYS ---
 resource "aws_key_pair" "deployer" {
-  key_name   = "${var.project_name}-key-v2" # Just add -v2
+  # This makes the name something like mock-gov-portal-key-a1b2c3d4
+  key_name   = "${var.project_name}-key-${random_id.suffix.hex}"
   public_key = var.ec2_public_key
 }
 
