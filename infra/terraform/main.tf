@@ -43,7 +43,7 @@ resource "aws_route_table_association" "public_assoc" {
 
 # --- SECURITY & KEYS ---
 resource "aws_key_pair" "deployer" {
-  key_name   = "${var.project_name}-key"
+  key_name   = "${var.project_name}-key-v2" # Just add -v2
   public_key = var.ec2_public_key
 }
 
