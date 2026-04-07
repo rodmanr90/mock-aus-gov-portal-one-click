@@ -31,10 +31,10 @@ on:
         description: "CIDR allowed to access app (80)"
         required: true
         default: "0.0.0.0/0"
-
-push:
-  branches:
-    - main
+  # Moved inside the 'on' block
+  push:
+    branches:
+      - main
 
 jobs:
   provision-and-deploy:
@@ -56,7 +56,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: ${{ github.event.inputs.aws_region || 'ap-southeast-2' }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -69,12 +69,12 @@ jobs:
         working-directory: infra/terraform
         run: |
           terraform apply -auto-approve \
-            -var="aws_region=${{ inputs.aws_region }}" \
-            -var="instance_type=${{ inputs.instance_type }}" \
+            -var="aws_region=${{ github.event.inputs.aws_region || 'ap-southeast-2' }}" \
+            -var="instance_type=${{ github.event.inputs.instance_type || 't3.micro' }}" \
             -var="project_name=mock-gov-portal" \
             -var="ec2_public_key=${{ secrets.EC2_PUBLIC_KEY }}" \
-            -var="ssh_ingress_cidr=${{ inputs.ssh_ingress_cidr }}" \
-            -var="http_ingress_cidr=${{ inputs.http_ingress_cidr }}"
+            -var="ssh_ingress_cidr=${{ github.event.inputs.ssh_ingress_cidr || '0.0.0.0/0' }}" \
+            -var="http_ingress_cidr=${{ github.event.inputs.http_ingress_cidr || '0.0.0.0/0' }}"
 
       - name: Capture instance output
         id: tfout
@@ -114,30 +114,30 @@ jobs:
             fi
             TMP_DIR="/tmp/mock-gov-portal-bootstrap"
             rm -rf "$TMP_DIR"
-            git clone --depth 1 --branch "${{ inputs.app_branch }}" "$REPO_URL" "$TMP_DIR"
+            git clone --depth 1 --branch "${{ github.event.inputs.app_branch || 'main' }}" "$REPO_URL" "$TMP_DIR"
             cd "$TMP_DIR"
             sudo bash scripts/bootstrap-ec2.sh \
               --repo-url "$REPO_URL" \
               --app-user "$APP_USER" \
               --app-dir "$APP_DIR" \
-              --branch "${{ inputs.app_branch }}"
+              --branch "${{ github.event.inputs.app_branch || 'main' }}"
 
-            if [ -n "${{ inputs.department_name }}" ]; then
+            if [ -n "${{ github.event.inputs.department_name }}" ]; then
               echo "Applying workflow branding override..."
-              DEPT='${{ inputs.department_name }}'
-              SHORT='${{ inputs.department_short_name }}'
+              DEPT='${{ github.event.inputs.department_name }}'
+              SHORT='${{ github.event.inputs.department_short_name }}'
 
               if [ -z "$SHORT" ]; then
                 SHORT=$(echo "$DEPT" | awk '{for(i=1;i<=NF;i++) printf toupper(substr($i,1,1))}')
               fi
 
               cat > /tmp/branding_override.json <<EOF
-{
-  "departmentFull": "$DEPT",
-  "shortName": "$SHORT",
-  "loginBlurb": "This system is restricted to authorised $DEPT personnel. Unauthorised access is prohibited."
-}
-EOF
+            {
+              "departmentFull": "$DEPT",
+              "shortName": "$SHORT",
+              "loginBlurb": "This system is restricted to authorised \$DEPT personnel. Unauthorised access is prohibited."
+            }
+            EOF
 
               sudo APP_DIR="$APP_DIR" node -e '
                 const fs = require("fs");
@@ -154,8 +154,7 @@ EOF
         run: |
           echo "App URL: http://${{ steps.tfout.outputs.ec2_ip }}" >> "$GITHUB_STEP_SUMMARY"
           echo "EC2 DNS: ${{ steps.tfout.outputs.ec2_dns }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Region: ${{ inputs.aws_region }}" >> "$GITHUB_STEP_SUMMARY"
-          if [ -n "${{ inputs.department_name }}" ]; then
-            echo "Department branding: ${{ inputs.department_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Region: ${{ github.event.inputs.aws_region || 'ap-southeast-2' }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "${{ github.event.inputs.department_name }}" ]; then
+            echo "Department branding: ${{ github.event.inputs.department_name }}" >> "$GITHUB_STEP_SUMMARY"
           fi
-
