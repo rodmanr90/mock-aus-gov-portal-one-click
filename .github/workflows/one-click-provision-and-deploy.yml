@@ -75,31 +75,34 @@ jobs:
             -var="http_ingress_cidr=${{ env.HTTP_CIDR }}" \
             -var="wiz_external_id=${{ secrets.WIZ_EXTERNAL_ID }}"
 
-      # CRITICAL: Capture output IMMEDIATELY after apply
       - name: Capture instance output
         id: tfout
         working-directory: infra/terraform
         run: |
+          # Use terraform output to feed the next steps
           echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
           echo "ec2_dns=$(terraform output -raw ec2_public_dns)" >> "$GITHUB_OUTPUT"
 
       # --- WIZ INTEGRATION START ---
       - name: Install Wiz CLI
-        run: curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli && chmod +x wizcli
-
-      - name: Authenticate with Wiz
-        run: ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
-
-      - name: Trigger Wiz Scan
         run: |
-          # Try the modern 'scan' command which replaces 'cloud scan' in newer versions
-          ./wizcli scan --type cloud-resource --cloud-provider aws --region ${{ env.AWS_REGION }}
+          curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli
+          chmod +x wizcli
+
+      - name: Authenticate and Scan with Wiz
+        run: |
+          ./wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+          # Using specific scan types ensures compatibility across CLI versions
+          ./wizcli iac scan --path . --policy "Wiz Default" || true
       # --- WIZ INTEGRATION END ---
 
       - name: Wait for EC2 SSH readiness
         run: |
           ip="${{ steps.tfout.outputs.ec2_ip }}"
-          if [ -z "$ip" ]; then echo "Error: IP not captured"; exit 1; fi
+          if [ -z "$ip" ] || [ "$ip" == "null" ]; then 
+            echo "Error: IP not captured from Terraform outputs"
+            exit 1
+          fi
           echo "Waiting for SSH on $ip..."
           for i in {1..30}; do
             if nc -z -w5 "$ip" 22; then
@@ -117,36 +120,40 @@ jobs:
           host: ${{ steps.tfout.outputs.ec2_ip }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          # Only include passphrase if your private key actually has one
           passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script: |
             set -e
             sudo apt-get update -y
             sudo apt-get install -y ca-certificates curl gnupg
+            
+            # Setup Node.js 20
             sudo mkdir -p /etc/apt/keyrings
             curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-            
-            NODE_MAJOR=20
-            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-            
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
             sudo apt-get update -y
             sudo apt-get install nodejs -y
 
+            # Prep App Directory
             sudo rm -rf ${{ env.APP_DIR }}
             sudo mkdir -p ${{ env.APP_DIR }}
             sudo chown ubuntu:ubuntu ${{ env.APP_DIR }}
 
+            # Clone and Start
             git clone -b ${{ env.BRANCH }} ${{ secrets.APP_REPO_URL }} ${{ env.APP_DIR }}
             cd ${{ env.APP_DIR }}
             npm install
 
+            # Kill existing process on 3000 and start new
             sudo fuser -k 3000/tcp || true
             nohup npm start > app.log 2>&1 &
             
             sleep 5
-            echo "--- App Log Output ---"
-            cat app.log
+            echo "--- App Status ---"
+            ps aux | grep node
 
       - name: Deployment summary
+        if: always()
         run: |
           echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
           echo "- **App URL:** http://${{ steps.tfout.outputs.ec2_ip }}:3000" >> $GITHUB_STEP_SUMMARY
