@@ -33,11 +33,12 @@ resource "aws_iam_role" "wiz_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::197116010530:root" # Standard Wiz Prod ARN
+          # This is the more explicit way to define the account root
+          AWS = "197116010530" 
         }
+        Action = "sts:AssumeRole"
         Condition = {
           StringEquals = {
             "sts:ExternalId" = var.wiz_external_id
