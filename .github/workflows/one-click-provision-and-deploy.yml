@@ -90,9 +90,10 @@ jobs:
       - name: Authenticate with Wiz
         run: ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
 
-      - name: Trigger Wiz Cloud Scan
+      - name: Trigger Wiz Scan
         run: |
-          ./wizcli cloud scan --cloud-provider aws --region ${{ env.AWS_REGION }}
+          # Try the modern 'scan' command which replaces 'cloud scan' in newer versions
+          ./wizcli scan --type cloud-resource --cloud-provider aws --region ${{ env.AWS_REGION }}
       # --- WIZ INTEGRATION END ---
 
       - name: Wait for EC2 SSH readiness
