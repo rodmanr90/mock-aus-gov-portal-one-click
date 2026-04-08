@@ -75,6 +75,14 @@ jobs:
             -var="http_ingress_cidr=${{ env.HTTP_CIDR }}" \
             -var="wiz_external_id=${{ secrets.WIZ_EXTERNAL_ID }}"
 
+      # CRITICAL: Capture output IMMEDIATELY after apply
+      - name: Capture instance output
+        id: tfout
+        working-directory: infra/terraform
+        run: |
+          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
+          echo "ec2_dns=$(terraform output -raw ec2_public_dns)" >> "$GITHUB_OUTPUT"
+
       # --- WIZ INTEGRATION START ---
       - name: Install Wiz CLI
         run: curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli && chmod +x wizcli
@@ -87,16 +95,10 @@ jobs:
           ./wizcli cloud scan --cloud-provider aws --region ${{ env.AWS_REGION }}
       # --- WIZ INTEGRATION END ---
 
-      - name: Capture instance output
-        id: tfout
-        working-directory: infra/terraform
-        run: |
-          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
-          echo "ec2_dns=$(terraform output -raw ec2_public_dns)" >> "$GITHUB_OUTPUT"
-
       - name: Wait for EC2 SSH readiness
         run: |
           ip="${{ steps.tfout.outputs.ec2_ip }}"
+          if [ -z "$ip" ]; then echo "Error: IP not captured"; exit 1; fi
           echo "Waiting for SSH on $ip..."
           for i in {1..30}; do
             if nc -z -w5 "$ip" 22; then
