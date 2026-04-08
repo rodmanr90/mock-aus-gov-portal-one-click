@@ -25,8 +25,9 @@ resource "aws_vpc" "main" {
 
 # --- WIZ INTEGRATION ---
 module "wiz-configuration" {
-  source          = "wiz-sec/wiz-iam-role/aws"
-  version         = "~> 1.0"
+  # Direct GitHub source is more reliable than the registry for this module
+  source          = "github.com/wiz-sec/terraform-aws-wiz-role"
+  
   wiz_external_id = var.wiz_external_id
   wiz_arn         = "arn:aws:iam::197116010530:root" 
 }
