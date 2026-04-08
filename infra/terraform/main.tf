@@ -23,13 +23,56 @@ resource "aws_vpc" "main" {
   tags = { Name = "${var.project_name}-vpc" }
 }
 
-# --- WIZ INTEGRATION ---
-module "wiz-configuration" {
-  # Direct GitHub source is more reliable than the registry for this module
-  source          = "github.com/wiz-sec/terraform-aws-wiz-role"
-  
-  wiz_external_id = var.wiz_external_id
-  wiz_arn         = "arn:aws:iam::197116010530:root" 
+# --- WIZ INTEGRATION (Manual Resource Version) ---
+
+# 1. Create the IAM Role for Wiz
+resource "aws_iam_role" "wiz_role" {
+  name = "WizAccessRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::197116010530:root" # Standard Wiz Prod ARN
+        }
+        Condition = {
+          StringEquals = {
+            "sts:ExternalId" = var.wiz_external_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# 2. Attach the SecurityAudit policy (Standard for Wiz)
+resource "aws_iam_role_policy_attachment" "wiz_read_only" {
+  role       = aws_iam_role.wiz_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecurityAudit"
+}
+
+# 3. Attach a custom policy for deeper scanning if needed
+resource "aws_iam_role_policy" "wiz_custom_scan" {
+  name = "WizCustomScanPolicy"
+  role = aws_iam_role.wiz_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+          "s3:GetBucketLocation",
+          "s3:ListAllMyBuckets"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_subnet" "public" {
