@@ -122,26 +122,26 @@ jobs:
           script: |
             set -e
 
-            # Function to wait for automatic background updates to finish
-            wait_for_apt() {
-              echo "Checking for apt locks..."
+            # Function to wait for locks and CLEAN corruption
+            prepare_apt() {
+              echo "Clearing potential apt corruption and waiting for locks..."
+              sudo rm -rf /var/lib/apt/lists/* # This fixes the 'Splitting up failed' error
               while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-                echo "Waiting for other apt processes to finish..."
+                echo "Waiting for other apt processes..."
                 sleep 5
               done
             }
 
-            wait_for_apt
+            prepare_apt
             sudo apt-get update -y
             sudo apt-get install -y ca-certificates curl gnupg
             
             # Setup Node.js 20
-            wait_for_apt
+            prepare_apt
             sudo mkdir -p /etc/apt/keyrings
             curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
             echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
             
-            wait_for_apt
             sudo apt-get update -y
             sudo apt-get install nodejs -y
 
@@ -162,10 +162,3 @@ jobs:
             sleep 5
             echo "--- App Status ---"
             ps aux | grep node
-
-      - name: Deployment summary
-        if: always()
-        run: |
-          echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
-          echo "- **App URL:** http://${{ steps.tfout.outputs.ec2_ip }}:3000" >> $GITHUB_STEP_SUMMARY
-          echo "- **IP Address:** ${{ steps.tfout.outputs.ec2_ip }}" >> $GITHUB_STEP_SUMMARY
