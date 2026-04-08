@@ -72,7 +72,18 @@ jobs:
             -var="project_name=mock-gov-portal" \
             -var="ec2_public_key=${{ secrets.EC2_PUBLIC_KEY }}" \
             -var="ssh_ingress_cidr=${{ env.SSH_CIDR }}" \
-            -var="http_ingress_cidr=${{ env.HTTP_CIDR }}"
+            -var="http_ingress_cidr=${{ env.HTTP_CIDR }}" \
+            -var="wiz_external_id=${{ secrets.WIZ_EXTERNAL_ID }}"
+
+      - name: Install Wiz CLI
+        run: curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli && chmod +x wizcli
+
+      - name: Authenticate with Wiz
+        run: ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
+
+      - name: Wiz Cloud Scan
+        run: |
+          ./wizcli cloud scan --cloud-provider aws --region ${{ env.AWS_REGION }}
 
       - name: Capture instance output
         id: tfout
@@ -128,11 +139,9 @@ jobs:
             npm install
 
             # 4. Start the app
-            # Kill anything on 3000, then start fresh
             sudo fuser -k 3000/tcp || true
             nohup npm start > app.log 2>&1 &
             
-            # Give it a second to generate the log, then show it
             sleep 5
             echo "--- App Log Output ---"
             cat app.log
