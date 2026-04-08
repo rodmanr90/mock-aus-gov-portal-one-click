@@ -27,7 +27,7 @@ resource "aws_vpc" "main" {
 
 # 1. Create the IAM Role for Wiz
 resource "aws_iam_role" "wiz_role" {
-  name = "WizAccessRole"
+  name = "WizAccessRole-${random_id.suffix.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
