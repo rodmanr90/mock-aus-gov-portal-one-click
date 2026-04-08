@@ -35,11 +35,12 @@ resource "aws_iam_role" "wiz_role" {
       {
         Effect = "Allow"
         Principal = {
-          # This is the more explicit way to define the account root
-          AWS = "197116010530" 
+          # We change this from 'root' to your specific Wiz Delegator ARN
+          AWS = "arn:aws:iam::830522659852:role/prod-us36-AssumeRoleDelegator"
         }
         Action = "sts:AssumeRole"
         Condition = {
+          # The External ID acts as the secondary 'password' for the handshake
           StringEquals = {
             "sts:ExternalId" = var.wiz_external_id
           }
