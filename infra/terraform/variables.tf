@@ -38,3 +38,9 @@ variable "http_ingress_cidr" {
   default     = "0.0.0.0/0"
 }
 
+# Added for Wiz Integration
+variable "wiz_external_id" {
+  description = "External ID provided by Wiz for the AWS Connector"
+  type        = string
+  sensitive   = true
+}
