@@ -77,7 +77,7 @@ jobs:
 
       - name: Capture instance output
         id: tfout
-        working-directory: infra/terraform # Critical: Needs to be in the same dir as the state
+        working-directory: infra/terraform
         run: |
           echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
           echo "ec2_dns=$(terraform output -raw ec2_public_dns)" >> "$GITHUB_OUTPUT"
@@ -91,7 +91,6 @@ jobs:
       - name: Authenticate and Scan with Wiz
         run: |
           ./wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
-          # Using 'iac scan' to validate the Terraform code for misconfigurations
           ./wizcli iac scan --path . --policy "Wiz Default" || true
       # --- WIZ INTEGRATION END ---
 
@@ -122,13 +121,27 @@ jobs:
           passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script: |
             set -e
+
+            # Function to wait for automatic background updates to finish
+            wait_for_apt() {
+              echo "Checking for apt locks..."
+              while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
+                echo "Waiting for other apt processes to finish..."
+                sleep 5
+              done
+            }
+
+            wait_for_apt
             sudo apt-get update -y
             sudo apt-get install -y ca-certificates curl gnupg
             
             # Setup Node.js 20
+            wait_for_apt
             sudo mkdir -p /etc/apt/keyrings
             curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
             echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+            
+            wait_for_apt
             sudo apt-get update -y
             sudo apt-get install nodejs -y
 
