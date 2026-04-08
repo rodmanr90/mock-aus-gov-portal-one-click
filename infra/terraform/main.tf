@@ -13,18 +13,8 @@ data "aws_ami" "ubuntu" {
 }
 
 # --- VARIABLES ---
-variable "aws_region" {}
-variable "instance_type" {}
-variable "project_name" {}
-variable "ec2_public_key" {}
-variable "ssh_ingress_cidr" {}
-variable "http_ingress_cidr" {}
-
-# 1. ADD THIS VARIABLE FOR WIZ
-variable "wiz_external_id" {
-  type      = string
-  sensitive = true
-}
+# We have removed the variable definitions from here because they 
+# already exist in your variables.tf file. This stops the "Duplicate" errors.
 
 # --- NETWORK ---
 resource "aws_vpc" "main" {
@@ -33,7 +23,7 @@ resource "aws_vpc" "main" {
   tags = { Name = "${var.project_name}-vpc" }
 }
 
-# 2. ADD THE WIZ MODULE HERE
+# --- WIZ INTEGRATION ---
 module "wiz-configuration" {
   source          = "wiz-sec/wiz-iam-role/aws"
   version         = "~> 1.0"
@@ -115,7 +105,22 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # ... your existing shell script ...
+              # Nginx landing page (AWS Version)
+              apt-get update
+              apt-get install -y nginx
+              cat << 'HTML' > /var/www/html/index.html
+              <!DOCTYPE html>
+              <html>
+              <head><title>Australian Government Portal</title></head>
+              <body style="background-color: #002b45; color: white; text-align: center; padding: 50px;">
+                <h1>Department of Infrastructure & Digital Security</h1>
+                <h2>Secure AWS Landing Zone Active</h2>
+                <p>Monitored by Wiz.io</p>
+              </body>
+              </html>
+              HTML
+              systemctl start nginx
+              systemctl enable nginx
               EOF
 
   tags = { Name = "${var.project_name}-instance" }
