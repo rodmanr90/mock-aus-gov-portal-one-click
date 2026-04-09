@@ -179,10 +179,30 @@ function renderAdmin(data) {
   });
 }
 
+function handleAIProviderChange() {
+  const provider = $('ai-provider').value;
+  const keyContainer = $('ai-api-key-container');
+  const chatWindow = $('chatgpt-window');
+  
+  if (provider === 'OpenAI-Dept') {
+    hide(keyContainer);
+    show(chatWindow);
+  } else {
+    show(keyContainer);
+    hide(chatWindow);
+    // Set placeholder based on provider
+    const keyInput = $('ai-api-key');
+    if (provider === 'Hugging Face') keyInput.placeholder = 'hf_...';
+    else if (provider === 'LangChain') keyInput.placeholder = 'lc_...';
+    else keyInput.placeholder = 'sk-ant-...';
+  }
+}
+
 async function handleAISubmit(event) {
   event.preventDefault();
   const dataId = $('ai-source-data').value;
   const provider = $('ai-provider').value;
+  const apiKey = $('ai-api-key').value;
   const status = $('ai-status');
   const isSanctioned = provider === 'OpenAI-Dept';
   
@@ -190,18 +210,31 @@ async function handleAISubmit(event) {
   status.textContent = isSanctioned ? 'Connecting to sanctioned departmental AI...' : 'Initiating external Shadow AI data extraction...';
   show(status);
 
+  if (!isSanctioned && !apiKey) {
+    status.textContent = 'Error: API Key is required for private AI models.';
+    status.className = 'alert alert-error';
+    return;
+  }
+
   try {
     const result = await api('/api/ai/process', {
       method: 'POST',
-      body: JSON.stringify({ dataId, provider, model: isSanctioned ? 'gpt-4o-gov-authorized' : 'public-llama-3' })
+      body: JSON.stringify({ dataId, provider, model: isSanctioned ? 'gpt-4o-gov-authorized' : 'public-llama-3', apiKey })
     });
     
     if (isSanctioned) {
-      status.innerHTML = `<strong>SUCCESS: Sanctioned Connection Established.</strong><br>Data processed within department's private tenant of OpenAI. <br><br><em>(Wiz still detects the API key 'sk-proj-AUSGOV...' in the source code as a secret.)</em>`;
+      status.innerHTML = `<strong>SUCCESS: Sanctioned Connection Established.</strong><br>Data processed within department's private tenant of OpenAI.`;
       status.className = 'alert alert-success';
+      
+      // Simulate ChatGPT interaction
+      const chatOutput = $('chatgpt-response');
+      const chatText = $('chatgpt-text-output');
+      show(chatOutput);
+      chatText.textContent = `Analyzing ${dataId}... I have identified several key discussion points and sensitive data markers. The summary has been stored in your department's secure AWS bucket.`;
     } else {
-      status.innerHTML = `<strong>WARNING: Shadow AI Detected!</strong><br>${result.result}<br><br>${result.warning}`;
+      status.innerHTML = `<strong>WARNING: Shadow AI Detected!</strong><br>${result.result}<br><br>${result.warning}<br><br><em>(Wiz flagged the egress to ${provider} and the use of an external API key.)</em>`;
       status.className = 'alert alert-error';
+      hide($('chatgpt-window'));
     }
     show(status);
   } catch (err) {
@@ -418,8 +451,23 @@ window.addEventListener('DOMContentLoaded', () => {
   $('minutes-form').addEventListener('submit', handleMinutesSubmit);
   const aiForm = $('ai-form');
   if (aiForm) aiForm.addEventListener('submit', handleAISubmit);
+  
+  const adminToggle = $('admin-toggle');
+  if (adminToggle) {
+    adminToggle.addEventListener('click', () => {
+      loadAdminView();
+      setActiveNav('admin');
+    });
+  }
+
   setupNavigation();
   applyBranding();
   restoreSession();
+  
+  // Initialize AI provider state
+  const aiProvider = $('ai-provider');
+  if (aiProvider) {
+    handleAIProviderChange();
+  }
 });
 
