@@ -10,9 +10,13 @@
     <header class="gov-header">
       <div class="gov-header-inner">
         <div class="gov-brand">
-          <div class="gov-coa">
-            <span id="crest-initials">AU</span>
-          </div>
+          <!-- Realistic Australian Government SVG Emblem -->
+          <svg width="60" height="40" viewBox="0 0 450 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="450" height="300" fill="none" />
+            <path d="M150,150 a75,75 0 1,0 150,0 a75,75 0 1,0 -150,0" fill="none" stroke="white" stroke-width="2"/>
+            <path d="M225,100 L240,140 L280,140 L250,165 L260,205 L225,180 L190,205 L200,165 L170,140 L210,140 Z" fill="white"/>
+            <text x="225" y="240" font-family="Arial" font-size="28" fill="white" text-anchor="middle" font-weight="bold">Australian Government</text>
+          </svg>
           <div class="gov-brand-text">
             <span id="brand-country" class="gov-brand-country">Commonwealth of Australia</span>
             <span id="brand-system" class="gov-brand-system">Secure Collaboration Portal</span>
@@ -27,14 +31,12 @@
     <main class="gov-main">
       <section id="login-view" class="panel panel-centered">
         <div class="login-crest-wrapper">
-          <div class="login-crest">
-            <div class="login-crest-inner">
-              <span id="login-crest-initials">PM&amp;C</span>
-            </div>
-          </div>
+          <svg width="100" height="80" viewBox="0 0 450 300" xmlns="http://www.w3.org/2000/svg">
+            <path d="M225,80 L245,130 L295,130 L255,160 L270,210 L225,180 L180,210 L195,160 L155,130 L205,130 Z" fill="#ffd54f"/>
+            <text x="225" y="260" font-family="Arial" font-size="24" fill="#cbd5f5" text-anchor="middle" font-weight="bold">Commonwealth of Australia</text>
+          </svg>
           <div class="login-crest-text">
-            <div id="login-country" class="login-country">Commonwealth of Australia</div>
-            <div id="login-dept" class="login-dept">Department of the Prime Minister and Cabinet</div>
+            <div id="login-dept" class="login-dept" style="margin-top: 10px; font-size: 1.1rem; color: #facc15;">Department of the Prime Minister and Cabinet</div>
           </div>
         </div>
         <h1 id="login-title">Privileged Access Sign‑in</h1>
@@ -108,8 +110,11 @@
             <button data-view="senate" class="nav-item">
               Senate estimates
             </button>
+            <button data-view="ai-insights" class="nav-item">
+              AI Insights & Enrichment
+            </button>
             <button data-view="admin" class="nav-item admin-only">
-              Admin – identities &amp; service accounts
+              Admin – Identity Management
             </button>
           </nav>
 
@@ -134,7 +139,7 @@
             </div>
 
             <div id="view-minutes" class="content-view hidden">
-              <h2>Meeting minutes capture</h2>
+              <h2>Meeting minutes capture <span class="vulnerability-tag">Sensitive Data Exposure</span></h2>
               <p class="muted">
                 Capture and file minutes against existing records. In this mock environment, data is not actually persisted.
               </p>
@@ -155,14 +160,34 @@
                 <button type="submit" class="btn btn-primary">File minutes</button>
                 <div id="minutes-status" class="alert hidden"></div>
               </form>
+
+              <div style="margin-top: 30px;">
+                <h3>Recently filed minutes <span class="vulnerability-tag">Unauthenticated Access</span></h3>
+                <table class="table small">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Document</th>
+                      <th>Summary</th>
+                      <th>Filed by</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="minutes-list-body"></tbody>
+                </table>
+              </div>
             </div>
 
             <div id="view-collab" class="content-view hidden">
-              <h2>File collaboration (mock)</h2>
+              <h2>File collaboration (mock) <span class="vulnerability-tag">React XSS (dangerouslySetInnerHTML)</span></h2>
               <p class="muted">
                 Illustrative view of concurrent access and sharing metadata. No real documents are stored.
               </p>
-              <div class="grid">
+              
+              <!-- VULNERABLE REACT COMPONENT ROOT -->
+              <div id="react-chat-root" style="margin-top: 20px;"></div>
+
+              <div class="grid" style="margin-top: 20px;">
                 <div class="panel">
                   <h3>Active collaborators</h3>
                   <ul class="list">
@@ -192,7 +217,7 @@
             </div>
 
             <div id="view-senate" class="content-view hidden">
-              <h2>Senate estimates schedule</h2>
+              <h2>Senate estimates schedule <span class="vulnerability-tag">IDOR</span></h2>
               <p class="muted">
                 Upcoming hearings and indicative portfolios. Data is illustrative only.
               </p>
@@ -203,42 +228,95 @@
                     <th>Portfolio</th>
                     <th>Date</th>
                     <th>Location</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="senate-body"></tbody>
               </table>
+
+              <div id="registration-status" class="alert hidden" style="margin-top: 20px;"></div>
+
+              <div style="margin-top: 30px;">
+                <h3>Active hearing registrations</h3>
+                <p class="muted small">VULNERABILITY: This view shows ALL users' registrations (Broken Object Level Authorization).</p>
+                <table class="table small">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Committee</th>
+                      <th>Registered user</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody id="registrations-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="view-ai-insights" class="content-view hidden">
+              <h2>AI Insights & Data Enrichment <span class="vulnerability-tag">Shadow AI / Data Leakage</span></h2>
+              <p class="muted">
+                Connect internal government data to Large Language Models for automated summarization and sentiment analysis.
+              </p>
+              <div class="panel" style="margin-top: 20px; border: 1px dashed #f87171;">
+                <h3>Extract & Process Data</h3>
+                <form id="ai-form" class="form">
+                  <label>
+                    Select Source Data
+                    <select id="ai-source-data">
+                      <option value="DOC-2026-0002">Budget Estimates – Defence Capability (Cabinet-in-Confidence)</option>
+                      <option value="DOC-2026-0001">National Cyber Security Posture Brief (Protected)</option>
+                      <option value="MIN-001">Minutes: Regional Cyber Resilience</option>
+                    </select>
+                  </label>
+                  <label>
+                    AI Provider / Agent
+                    <select id="ai-provider">
+                      <option value="OpenAI-Dept">OpenAI (Departmental Tenant - SANCTIONED)</option>
+                      <option value="Hugging Face">Hugging Face (Public API - Shadow AI)</option>
+                      <option value="LangChain">LangChain Agent (External Hub - Shadow AI)</option>
+                      <option value="LLaMa-Cloud">LLaMa-3 (Cloud Hosted - Shadow AI)</option>
+                    </select>
+                  </label>
+                  <div class="form-footnote">
+                    <b>Risk:</b> Sending 'Protected' or 'Cabinet-in-Confidence' data to third-party AI models without sanitization.
+                  </div>
+                  <button type="submit" class="btn btn-primary">Process with AI</button>
+                  <div id="ai-status" class="alert hidden"></div>
+                </form>
+              </div>
             </div>
 
             <div id="view-admin" class="content-view hidden">
-              <h2>Admin – identities &amp; service accounts</h2>
+              <h2>Admin – Identity & Entitlements <span class="vulnerability-tag">Toxic Combinations</span></h2>
               <p class="muted">
-                Full visibility of user identities and privileged service accounts for demonstration purposes.
+                Manage user permissions and service account privileges. Monitor for overly-permissive identities.
               </p>
               <div id="admin-warning" class="alert alert-error hidden"></div>
               <div class="grid">
                 <div class="panel">
-                  <h3>User profiles</h3>
+                  <h3>User Entitlements</h3>
                   <table class="table small">
                     <thead>
                       <tr>
                         <th>Username</th>
-                        <th>Display name</th>
-                        <th>Role</th>
-                        <th>Department</th>
+                        <th>Permissions</th>
+                        <th>Risk Level</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody id="admin-users-body"></tbody>
                   </table>
                 </div>
                 <div class="panel">
-                  <h3>Service accounts</h3>
+                  <h3>Service Account Scopes</h3>
                   <table class="table small">
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Name</th>
-                        <th>Privilege</th>
                         <th>Scope</th>
+                        <th>Privilege</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody id="admin-service-body"></tbody>
@@ -262,7 +340,12 @@
       </div>
     </footer>
 
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <script src="app.js"></script>
+    <script type="text/babel" src="react-chat.jsx"></script>
   </body>
 </html>
 

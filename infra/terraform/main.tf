@@ -111,10 +111,11 @@ resource "aws_security_group" "app_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
+    description = "SSH from anywhere - VULNERABLE"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.ssh_ingress_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -128,7 +129,7 @@ resource "aws_security_group" "app_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [var.http_ingress_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -139,7 +140,45 @@ resource "aws_security_group" "app_sg" {
   }
 }
 
-# --- COMPUTE ---
+# --- VULNERABLE RESOURCES FOR DEMO ---
+
+# 1. Public S3 Bucket with sensitive data
+resource "aws_s3_bucket" "sensitive_data" {
+  bucket = "aus-gov-internal-backup-${random_id.suffix.hex}"
+  
+  tags = {
+    Name        = "Sensitive Government Backup"
+    Environment = "Production"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "public_access" {
+  bucket = aws_s3_bucket.sensitive_data.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_ownership_controls" "ownership" {
+  bucket = aws_s3_bucket.sensitive_data.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "public_acl" {
+  depends_on = [
+    aws_s3_bucket_public_access_block.public_access,
+    aws_s3_bucket_ownership_controls.ownership,
+  ]
+
+  bucket = aws_s3_bucket.sensitive_data.id
+  acl    = "public-read"
+}
+
+# 2. EC2 Instance with IMDSv1 enabled and no encryption
 resource "aws_instance" "app_server" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
@@ -148,11 +187,25 @@ resource "aws_instance" "app_server" {
   vpc_security_group_ids      = [aws_security_group.app_sg.id]
   user_data_replace_on_change = true 
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "optional" # IMDSv1 Enabled - VULNERABLE
+  }
+
+  root_block_device {
+    encrypted = false # Unencrypted - VULNERABLE
+  }
+
   user_data = <<-EOF
               #!/bin/bash
               # Nginx landing page (AWS Version)
               apt-get update
               apt-get install -y nginx
+              
+              # Hardcoded Secret for demo - VULNERABLE
+              export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
+              export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
               cat << 'HTML' > /var/www/html/index.html
               <!DOCTYPE html>
               <html>

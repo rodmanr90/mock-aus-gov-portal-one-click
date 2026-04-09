@@ -38,6 +38,12 @@ variable "http_ingress_cidr" {
   default     = "0.0.0.0/0"
 }
 
+variable "db_password" {
+  description = "Default database password for RDS (VULNERABLE)"
+  type        = string
+  default     = "P@ssw0rd123!"
+}
+
 # Added for Wiz Integration
 variable "wiz_external_id" {
   description = "External ID provided by Wiz for the AWS Connector"

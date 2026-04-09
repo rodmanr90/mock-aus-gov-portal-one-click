@@ -7,6 +7,7 @@
   "loginBlurb": "This system is restricted to authorised Australian Government personnel. Unauthorised access is prohibited.",
   "accentColor": "#22c55e",
   "headerStart": "#002a45",
-  "headerEnd": "#004b6b"
+  "headerEnd": "#004b6b",
+  "google_analytics_key": "G-ABC123XYZ_SECRET_456"
 }
 
