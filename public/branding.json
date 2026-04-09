@@ -1,13 +1,12 @@
 {
   "countryLine": "Commonwealth of Australia",
   "systemName": "Secure Collaboration Portal",
-  "departmentFull": "Department of the Prime Minister and Cabinet",
-  "shortName": "PM&C",
+  "departmentFull": "Department of Parliamentary Services",
+  "shortName": "DPS",
   "loginTitle": "Privileged Access Sign‑in",
-  "loginBlurb": "This system is restricted to authorised Australian Government personnel. Unauthorised access is prohibited.",
-  "accentColor": "#22c55e",
-  "headerStart": "#002a45",
-  "headerEnd": "#004b6b",
-  "google_analytics_key": "G-ABC123XYZ_SECRET_456"
+  "loginBlurb": "This system is restricted to authorised Department of Parliamentary Services personnel. Unauthorised access is prohibited.",
+  "google_analytics_key": "G-ABC123XYZ_SECRET_456",
+  "accentColor": "#f59e0b",
+  "headerStart": "#451a03",
+  "headerEnd": "#78350f"
 }
-
