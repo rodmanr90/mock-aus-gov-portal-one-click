@@ -39,7 +39,7 @@
         <p id="login-blurb" class="muted">
           This system is restricted to authorised Australian Government personnel. Unauthorised access is prohibited.
         </p>
-        <form id="login-form" class="form">
+        <div id="login-form" class="form">
           <label>
             Username
             <input
@@ -60,9 +60,9 @@
               required
             />
           </label>
-          <button type="submit" class="btn btn-primary">Sign in</button>
+          <button type="button" class="btn btn-primary" onclick="handleLogin()">Sign in</button>
           <div id="login-error" class="alert alert-error hidden"></div>
-        </form>
+        </div>
       </section>
 
       <section id="app-view" class="hidden">

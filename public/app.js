@@ -285,8 +285,7 @@ async function handleAISubmit(event) {
   }
 }
 
-async function handleLogin(event) {
-  event.preventDefault();
+async function handleLogin() {
   const username = $('username-input').value.trim();
   const password = $('password-input').value;
 
@@ -487,7 +486,6 @@ async function restoreSession() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  $('login-form').addEventListener('submit', handleLogin);
   $('logout-btn').addEventListener('click', handleLogout);
   $('minutes-form').addEventListener('submit', handleMinutesSubmit);
   const aiForm = $('ai-form');
