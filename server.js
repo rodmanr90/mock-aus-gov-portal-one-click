@@ -47,51 +47,43 @@ app.use(express.static(path.join(__dirname, 'public')));
 const USERS = [
   {
     id: 1,
-    username: 'pm.albany',
-    displayName: 'Prime Minister',
+    username: 'anthony.albanese@pmc.gov.au',
+    displayName: 'Anthony Albanese',
     role: 'admin',
     department: 'Department of the Prime Minister and Cabinet',
-    permissions: ['*'], // OVERLY PERMISSIVE
+    permissions: ['*'],
   },
   {
     id: 2,
-    username: 'sec.defence',
-    displayName: 'Secretary of Defence',
+    username: 'richard.marles@defence.gov.au',
+    displayName: 'Richard Marles',
     role: 'user',
     department: 'Department of Defence',
     permissions: ['read:docs', 'read:senate'],
   },
   {
     id: 3,
-    username: 'sen.estimates',
-    displayName: 'Senate Estimates Liaison',
+    username: 'penny.wong@dfat.gov.au',
+    displayName: 'Penny Wong',
     role: 'user',
-    department: 'Parliamentary Services',
+    department: 'Foreign Affairs and Trade',
     permissions: ['read:senate', 'write:minutes'],
   },
   {
     id: 4,
-    username: 'ciso.finance',
-    displayName: 'CISO - Finance',
+    username: 'katy.gallagher@finance.gov.au',
+    displayName: 'Katy Gallagher',
     role: 'user',
     department: 'Department of Finance',
     permissions: ['read:docs', 'read:audit'],
   },
   {
     id: 5,
-    username: 'it.admin',
+    username: 'admin.service@dta.gov.au',
     displayName: 'System Administrator',
     role: 'admin',
     department: 'Digital Transformation Agency',
     permissions: ['*'],
-  },
-  {
-    id: 6,
-    username: 'sec.homeaffairs',
-    displayName: 'Secretary Home Affairs',
-    role: 'user',
-    department: 'Department of Home Affairs',
-    permissions: ['read:docs', 'read:intelligence'],
   },
 ];
 
@@ -264,21 +256,21 @@ const REGISTRATIONS = [
     id: 'REG-1042',
     hearingId: 'HEARING-002',
     committee: 'Foreign Affairs, Defence and Trade Committee',
-    username: 'sec.defence',
+    username: 'richard.marles@defence.gov.au',
     registeredAt: '2026-04-01T09:15:00.000Z'
   },
   {
     id: 'REG-2911',
     hearingId: 'HEARING-001',
     committee: 'Finance and Public Administration Legislation Committee',
-    username: 'ciso.finance',
+    username: 'katy.gallagher@finance.gov.au',
     registeredAt: '2026-04-02T14:30:00.000Z'
   },
   {
     id: 'REG-8821',
     hearingId: 'HEARING-003',
     committee: 'Environment and Communications Legislation Committee',
-    username: 'it.admin',
+    username: 'admin.service@dta.gov.au',
     registeredAt: '2026-04-05T11:00:00.000Z'
   }
 ];

@@ -309,7 +309,7 @@ async function handleLogin(event) {
 }
 
 function onAuthenticated(user) {
-  $('user-display').textContent = user.displayName;
+  $('user-display').textContent = user.username;
   $('user-dept').textContent = user.department;
   $('user-role').textContent = user.role === 'admin' ? 'Administrator' : 'Standard user';
 

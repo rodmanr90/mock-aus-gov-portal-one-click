@@ -9,7 +9,8 @@ const CollaboratorChat = () => {
 
   const handleSend = () => {
     if (input.trim()) {
-      setMessages([...messages, { user: 'current.user', text: input }]);
+      const currentUser = document.getElementById('user-display').textContent || 'unknown';
+      setMessages([...messages, { user: currentUser, text: input }]);
       setInput('');
     }
   };
