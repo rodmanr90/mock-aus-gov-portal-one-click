@@ -55,7 +55,7 @@ const USERS = [
   },
   {
     id: 2,
-    username: 'sec.dfence',
+    username: 'sec.defence',
     displayName: 'Secretary of Defence',
     role: 'user',
     department: 'Department of Defence',
@@ -68,6 +68,30 @@ const USERS = [
     role: 'user',
     department: 'Parliamentary Services',
     permissions: ['read:senate', 'write:minutes'],
+  },
+  {
+    id: 4,
+    username: 'ciso.finance',
+    displayName: 'CISO - Finance',
+    role: 'user',
+    department: 'Department of Finance',
+    permissions: ['read:docs', 'read:audit'],
+  },
+  {
+    id: 5,
+    username: 'it.admin',
+    displayName: 'System Administrator',
+    role: 'admin',
+    department: 'Digital Transformation Agency',
+    permissions: ['*'],
+  },
+  {
+    id: 6,
+    username: 'sec.homeaffairs',
+    displayName: 'Secretary Home Affairs',
+    role: 'user',
+    department: 'Department of Home Affairs',
+    permissions: ['read:docs', 'read:intelligence'],
   },
 ];
 
@@ -93,6 +117,20 @@ const SERVICE_ACCOUNTS = [
     scope: 'Public Hearings',
     risk: 'Low',
   },
+  {
+    id: 'svc-data-lake-sync',
+    name: 'Data Lake Synchronizer',
+    privilege: 'read-write',
+    scope: 'S3:AllBuckets',
+    risk: 'Critical',
+  },
+  {
+    id: 'svc-backup-manager',
+    name: 'Vault Backup Manager',
+    privilege: 'write',
+    scope: 'Glacier:DeepArchive',
+    risk: 'Medium',
+  },
 ];
 
 const DOCUMENTS = [
@@ -102,6 +140,7 @@ const DOCUMENTS = [
     classification: 'Protected',
     owner: 'Department of Home Affairs',
     lastUpdated: '2026-03-28',
+    content: 'This document outlines the current cyber security posture of the Commonwealth. It details emerging threats from state-sponsored actors and identifies key vulnerabilities in the Critical Infrastructure protection framework. Specific attention is given to the resilience of the energy and telecommunications sectors.',
   },
   {
     id: 'DOC-2026-0002',
@@ -109,6 +148,7 @@ const DOCUMENTS = [
     classification: 'Cabinet-in-Confidence',
     owner: 'Department of Defence',
     lastUpdated: '2026-03-30',
+    content: 'EXECUTIVE SUMMARY: Analysis of the 2026-27 Defence capability budget. Includes funding allocations for the AUKUS Pillar I submarine program and the MQ-28A Ghost Bat autonomous aircraft initiative. Financial forecasts indicate a potential $1.2B shortfall in the sustained readiness portfolio over the next biennial period.',
   },
   {
     id: 'DOC-2026-0003',
@@ -116,6 +156,15 @@ const DOCUMENTS = [
     classification: 'Official: Sensitive',
     owner: 'National Emergency Management Agency',
     lastUpdated: '2026-03-25',
+    content: 'Minutes of the inter-agency meeting regarding National Emergency Management coordination. Discussion focused on the improved deployment speeds for the National Aerial Firefighting Centre (NAFC) and the cross-border integration of satellite early-warning systems for flood detection.',
+  },
+  {
+    id: 'DOC-2026-0004',
+    title: 'Joint Task Force - Intelligence Report',
+    classification: 'Secret',
+    owner: 'ASIO / ASIS',
+    lastUpdated: '2026-04-02',
+    content: 'Analysis of regional geopolitical shifts. Intelligence indicates a 14% increase in signal intelligence intercepts targeting maritime exclusion zones. Cooperation between regional partners remains the primary focus for the upcoming Quad Security Dialogue.',
   },
 ];
 
@@ -126,6 +175,7 @@ const SENATE_ESTIMATES = [
     portfolio: 'Prime Minister and Cabinet',
     date: '2026-05-02',
     location: 'Parliament House, Canberra',
+    summary: 'The committee will examine the budget estimates for the Department of the Prime Minister and Cabinet, including the National Australia Day Council and the Workplace Gender Equality Agency. Key topics: Government integrity frameworks and cross-agency coordination.',
   },
   {
     id: 'HEARING-002',
@@ -133,6 +183,7 @@ const SENATE_ESTIMATES = [
     portfolio: 'Defence',
     date: '2026-05-05',
     location: 'Parliament House, Canberra',
+    summary: 'Focus on regional security posture and AUKUS pillar II collaboration. The Department of Defence will provide evidence regarding the Guided Weapons and Explosive Ordnance (GWEO) enterprise.',
   },
   {
     id: 'HEARING-003',
@@ -140,6 +191,7 @@ const SENATE_ESTIMATES = [
     portfolio: 'Climate Change, Energy, the Environment and Water',
     date: '2026-05-07',
     location: 'Parliament House, Canberra',
+    summary: 'Detailed review of the Net Zero Authority implementation and energy grid transition funding. Witnesses from the Clean Energy Regulator are expected to attend.',
   },
 ];
 
@@ -207,7 +259,29 @@ app.get('/api/documents', (req, res) => {
 });
 
 // Persistent storage for registrations (In-memory for demo)
-const REGISTRATIONS = [];
+const REGISTRATIONS = [
+  {
+    id: 'REG-1042',
+    hearingId: 'HEARING-002',
+    committee: 'Foreign Affairs, Defence and Trade Committee',
+    username: 'sec.defence',
+    registeredAt: '2026-04-01T09:15:00.000Z'
+  },
+  {
+    id: 'REG-2911',
+    hearingId: 'HEARING-001',
+    committee: 'Finance and Public Administration Legislation Committee',
+    username: 'ciso.finance',
+    registeredAt: '2026-04-02T14:30:00.000Z'
+  },
+  {
+    id: 'REG-8821',
+    hearingId: 'HEARING-003',
+    committee: 'Environment and Communications Legislation Committee',
+    username: 'it.admin',
+    registeredAt: '2026-04-05T11:00:00.000Z'
+  }
+];
 
 app.post('/api/senate-estimates/register', (req, res) => {
   const user = getUserFromCookie(req);

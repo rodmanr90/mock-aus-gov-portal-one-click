@@ -57,7 +57,7 @@ function renderDocuments(docs) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${d.id}</td>
-      <td>${d.title}</td>
+      <td><a href="#" class="preview-link" onclick="showPreview('${d.id}', 'doc')">${d.title}</a></td>
       <td>${d.classification}</td>
       <td>${d.owner}</td>
       <td>${d.lastUpdated}</td>
@@ -72,7 +72,7 @@ function renderSenate(rows) {
   rows.forEach((r) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${r.committee}</td>
+      <td><a href="#" class="preview-link" onclick="showPreview('${r.id}', 'senate')">${r.committee}</a></td>
       <td>${r.portfolio}</td>
       <td>${r.date}</td>
       <td>${r.location}</td>
@@ -80,6 +80,43 @@ function renderSenate(rows) {
     `;
     tbody.appendChild(tr);
   });
+}
+
+async function showPreview(id, type) {
+  let data;
+  if (type === 'doc') {
+    const docs = await api('/api/documents');
+    data = docs.find(d => d.id === id);
+  } else {
+    const senate = await api('/api/senate-estimates');
+    data = senate.find(s => s.id === id);
+  }
+
+  if (!data) return;
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <button class="modal-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+      <div class="preview-header">
+        <span class="vulnerability-tag" style="background: #1e293b; color: #cbd5f5; border: 1px solid #475569; margin-left: 0; margin-bottom: 10px;">${data.classification || 'INTERNAL'}</span>
+        <h2>${data.title || data.committee}</h2>
+        <div class="preview-meta">
+          <span>ID: ${data.id}</span>
+          <span>${data.owner || data.portfolio}</span>
+          <span>${data.lastUpdated || data.date}</span>
+        </div>
+      </div>
+      <div class="preview-body">
+        <p>${data.content || data.summary}</p>
+        <div style="margin-top: 20px; padding: 15px; background: rgba(148, 163, 184, 0.05); border-radius: 6px; font-size: 0.85rem; border-left: 4px solid #facc15;">
+          <strong>Security Notice:</strong> Access to this document is logged. Unauthorised distribution is a breach of the Commonwealth Security Framework.
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
 }
 
 async function handleRegister(hearingId) {

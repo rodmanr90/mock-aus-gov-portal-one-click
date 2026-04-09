@@ -63,9 +63,8 @@
           <div class="form-footnote">
             For demonstration purposes, use one of:
             <code>pm.albany</code>,
-            <code>sec.dfence</code>,
+            <code>sec.defence</code>,
             <code>sen.estimates</code>.
-            Any password will be accepted.
           </div>
           <button type="submit" class="btn btn-primary">Sign in</button>
           <div id="login-error" class="alert alert-error hidden"></div>
@@ -135,7 +134,7 @@
             </div>
 
             <div id="view-minutes" class="content-view hidden">
-              <h2>Meeting minutes capture <span class="vulnerability-tag">Sensitive Data Exposure</span></h2>
+              <h2>Meeting minutes capture</h2>
               <p class="muted">
                 Capture and file minutes against existing records. In this mock environment, data is not actually persisted.
               </p>
@@ -158,7 +157,7 @@
               </form>
 
               <div style="margin-top: 30px;">
-                <h3>Recently filed minutes <span class="vulnerability-tag">Unauthenticated Access</span></h3>
+                <h3>Recently filed minutes</h3>
                 <table class="table small">
                   <thead>
                     <tr>
@@ -175,7 +174,7 @@
             </div>
 
             <div id="view-collab" class="content-view hidden">
-              <h2>File collaboration (mock) <span class="vulnerability-tag">React XSS (dangerouslySetInnerHTML)</span></h2>
+              <h2>File collaboration (mock)</h2>
               <p class="muted">
                 Illustrative view of concurrent access and sharing metadata. No real documents are stored.
               </p>
@@ -213,7 +212,7 @@
             </div>
 
             <div id="view-senate" class="content-view hidden">
-              <h2>Senate estimates schedule <span class="vulnerability-tag">IDOR</span></h2>
+              <h2>Senate estimates schedule</h2>
               <p class="muted">
                 Upcoming hearings and indicative portfolios. Data is illustrative only.
               </p>
@@ -234,7 +233,6 @@
 
               <div style="margin-top: 30px;">
                 <h3>Active hearing registrations</h3>
-                <p class="muted small">VULNERABILITY: This view shows ALL users' registrations (Broken Object Level Authorization).</p>
                 <table class="table small">
                   <thead>
                     <tr>
@@ -250,7 +248,7 @@
             </div>
 
             <div id="view-ai-insights" class="content-view hidden">
-              <h2>AI Insights & Data Enrichment <span class="vulnerability-tag">Shadow AI / Data Leakage</span></h2>
+              <h2>AI Insights & Data Enrichment</h2>
               <p class="muted">
                 Connect internal government data to Large Language Models for automated summarization and sentiment analysis.
               </p>
@@ -283,7 +281,7 @@
                   </div>
 
                   <div class="form-footnote">
-                    <b>Risk:</b> Sending 'Protected' or 'Cabinet-in-Confidence' data to third-party AI models without sanitization.
+                    <b>Information:</b> Analysis of sensitive documents via connected AI agents requires appropriate clearance level.
                   </div>
                   <button type="submit" class="btn btn-primary">Process with AI</button>
                   <div id="ai-status" class="alert hidden"></div>
@@ -322,9 +320,9 @@
             </div>
 
             <div id="view-admin" class="content-view hidden">
-              <h2>Admin – Identity & Entitlements <span class="vulnerability-tag">Toxic Combinations</span></h2>
+              <h2>Admin – Identity & Entitlements</h2>
               <p class="muted">
-                Manage user permissions and service account privileges. Monitor for overly-permissive identities.
+                Manage user permissions and service account privileges.
               </p>
               <div id="admin-warning" class="alert alert-error hidden"></div>
               <div class="grid">
@@ -365,12 +363,12 @@
 
     <footer class="gov-footer">
       <div>
-        <span>Internal demonstration environment</span>
+        <span>Official Government Network</span>
         <span class="footer-dot">•</span>
-        <span>Not connected to production systems</span>
+        <span>Classified Data Access</span>
       </div>
       <div class="footer-disclaimer">
-        This portal is a mock system designed for security awareness and posture assessment demonstrations.
+        Unauthorised use of this system is subject to the Cybercrime Act 2001 and may lead to prosecution.
       </div>
     </footer>
 
