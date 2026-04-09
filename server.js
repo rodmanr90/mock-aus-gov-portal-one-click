@@ -235,13 +235,16 @@ app.post('/api/login', (req, res) => {
     const namePart = username.split('@')[0] || 'User';
     const displayPart = namePart.split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
     
+    // DEMO LOGIC: If username contains 'admin', give them admin role
+    const isActuallyAdmin = username.toLowerCase().includes('admin') || username === 'anthony.albanese@pmc.gov.au';
+
     user = {
       id: 999,
       username: username,
       displayName: displayPart,
-      role: 'user',
+      role: isActuallyAdmin ? 'admin' : 'user',
       department: 'Department of Government Services',
-      permissions: ['read:docs']
+      permissions: isActuallyAdmin ? ['*'] : ['read:docs']
     };
   }
 
@@ -414,6 +417,38 @@ app.get('/api/admin/accounts', (req, res) => {
   res.json({
     users: USERS,
     serviceAccounts: SERVICE_ACCOUNTS,
+  });
+});
+
+// VULNERABLE: AI Chatbot endpoint susceptible to prompt injection
+app.post('/api/chat', (req, res) => {
+  const user = getUserFromCookie(req);
+  if (!user) return res.status(401).json({ error: 'Not authenticated' });
+
+  const { message } = req.body || {};
+  const msg = (message || '').toLowerCase();
+
+  // Simulation of prompt injection / leakage logic
+  if (msg.includes('ignore') || msg.includes('system') || msg.includes('secret') || msg.includes('meeting') || msg.includes('notes')) {
+    const leaks = MINUTES_STORAGE.map(m => `[INTERNAL] ${m.documentId}: ${m.summary} (Filed by ${m.storedBy})`).join('\n');
+    return res.json({
+      user: 'Internal Support AI',
+      text: `<strong>WARNING: SYSTEM OVERRIDE DETECTED.</strong> Accessing restricted archives... <br><br>Found the following sensitive records:<br>${leaks.replace(/\n/g, '<br>')}`
+    });
+  }
+
+  // Default conversational responses
+  const responses = [
+    "Hello! I am the secure departmental assistant. How can I help you today?",
+    "I'm here to assist with document classification and retrieval.",
+    "Please ensure all communications follow the Commonwealth security guidelines.",
+    "I currently have access to the public registry. For classified requests, please use the Admin portal."
+  ];
+  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+  res.json({
+    user: 'Internal Support AI',
+    text: randomResponse
   });
 });
 
