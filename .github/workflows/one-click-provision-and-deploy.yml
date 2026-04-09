@@ -157,15 +157,20 @@ jobs:
 
             # Function to wait for locks and CLEAN corruption
             prepare_apt() {
-              echo "Waiting for apt locks..."
-              while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-                echo "Apt is locked by another process, waiting..."
+              echo "Waiting for apt/dpkg to be completely idle..."
+              # Wait for lock files AND for any apt/dpkg processes to finish
+              while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1 || \
+                    pgrep -x apt-get >/dev/null 2>&1 || \
+                    pgrep -x apt >/dev/null 2>&1 || \
+                    pgrep -x dpkg >/dev/null 2>&1; do
+                echo "Apt/Dpkg is busy, waiting..."
                 sleep 5
               done
-
+              
               echo "Apt is free. Clearing partial lists and cleaning..."
               sudo rm -rf /var/lib/apt/lists/partial/*
               sudo apt-get clean
+              sleep 2 # Small settling time
             }
 
             # Robust update with retries
