@@ -201,27 +201,59 @@ const MINUTES_STORAGE = [
 function getUserFromCookie(req) {
   const username = req.cookies['gov_portal_user'];
   if (!username) return null;
-  return USERS.find((u) => u.username === username) || null;
+  
+  // Check predefined list
+  let user = USERS.find((u) => u.username === username);
+  
+  // Create mock user if it matches the pattern
+  if (!user && (username.endsWith('.gov.au') || username.includes('@gov.com.au'))) {
+    const namePart = username.split('@')[0] || 'User';
+    const displayPart = namePart.split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
+    user = {
+      username: username,
+      displayName: displayPart,
+      role: 'user',
+      department: 'Department of Government Services'
+    };
+  }
+  
+  return user || null;
 }
 
 app.post('/api/login', (req, res) => {
   const { username } = req.body || {};
-  const user = USERS.find((u) => u.username === username);
+  
+  if (!username) {
+    return res.status(401).json({ error: 'Username is required' });
+  }
+
+  // Find if it's one of our predefined users
+  let user = USERS.find((u) => u.username === username);
+
+  // If not found, but looks like a gov email, create a mock user for the demo
+  if (!user && (username.endsWith('.gov.au') || username.includes('@gov.com.au'))) {
+    const namePart = username.split('@')[0] || 'User';
+    const displayPart = namePart.split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' ');
+    
+    user = {
+      id: 999,
+      username: username,
+      displayName: displayPart,
+      role: 'user',
+      department: 'Department of Government Services',
+      permissions: ['read:docs']
+    };
+  }
 
   if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: 'Invalid credentials. Access restricted to .gov.au domains.' });
   }
 
   res.cookie('gov_portal_user', user.username, {
     httpOnly: false,
   });
 
-  res.json({
-    username: user.username,
-    displayName: user.displayName,
-    role: user.role,
-    department: user.department,
-  });
+  res.json(user);
 });
 
 app.post('/api/logout', (req, res) => {
