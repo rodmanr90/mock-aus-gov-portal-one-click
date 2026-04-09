@@ -118,7 +118,7 @@ jobs:
       # --- WIZ INTEGRATION START ---
       - name: Install Wiz CLI
         run: |
-          curl -o wizcli https://wizcli.app.wiz.io/wiz-cli/v2/latest/wizcli-linux-amd64
+          curl -o wizcli https://wizcli.app.wiz.io/wizcli
           chmod +x wizcli
 
       - name: Authenticate and Scan with Wiz
