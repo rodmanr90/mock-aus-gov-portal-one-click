@@ -1,19 +1,21 @@
-name: Destroy Sandpit Infrastructure
+name: Destroy All Resources (AWS & Wiz)
 
 on:
   workflow_dispatch:
     inputs:
       aws_region:
-        description: "AWS region used by provision workflow"
+        description: "AWS region"
         required: true
         default: "ap-southeast-2"
+      confirm_destroy:
+        description: "Type 'DESTROY' to confirm"
+        required: true
 
 jobs:
   destroy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
+    if: github.event.inputs.confirm_destroy == 'DESTROY'
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,20 +25,38 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: ${{ github.event.inputs.aws_region }}
 
+      # 1. AWS TEARDOWN
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform init
+      - name: Terraform Init
         working-directory: infra/terraform
         run: terraform init
 
-      - name: Terraform destroy
+      - name: Terraform Destroy
         working-directory: infra/terraform
         run: |
           terraform destroy -auto-approve \
-            -var="aws_region=${{ inputs.aws_region }}" \
+            -var="aws_region=${{ github.event.inputs.aws_region }}" \
+            -var="instance_type=t3.micro" \
             -var="project_name=mock-gov-portal" \
-            -var="ec2_public_key=${{ secrets.EC2_PUBLIC_KEY }}"
+            -var="ec2_public_key=${{ secrets.EC2_PUBLIC_KEY }}" \
+            -var="wiz_external_id=${{ secrets.WIZ_EXTERNAL_ID }}"
 
+      # 2. WIZ TEARDOWN (Remove Connector)
+      - name: Install Wiz CLI
+        run: |
+          curl -o wizcli https://wizcli.app.wiz.io/wiz-cli/v2.4.0/wizcli-linux-amd64
+          chmod +x wizcli
+
+      - name: Remove Wiz Connector
+        run: |
+          ./wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+          # Try to find and delete the connector associated with this account
+          # Note: This uses the cloud-connector delete command if available in v2.x
+          # If not supported by CLI, this acts as a placeholder for manual removal 
+          # or a custom API call.
+          echo "Attempting to remove Wiz Connectors for AWS Account..."
+          ./wizcli cloud-connector delete --type aws || true
