@@ -353,7 +353,7 @@ async function initialiseData() {
     renderMinutesList(minutes);
     renderRegistrations(registrations);
   } catch (err) {
-    console.error(err);
+    console.error('Data initialization failed:', err);
   }
 }
 
