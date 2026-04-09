@@ -48,7 +48,7 @@ jobs:
       # 2. WIZ TEARDOWN (Remove Connector)
       - name: Install Wiz CLI
         run: |
-          curl -o wizcli https://wizcli.app.wiz.io/wiz-cli/v2.4.0/wizcli-linux-amd64
+          curl -o wizcli https://wizcli.app.wiz.io/wiz-cli/v2/latest/wizcli-linux-amd64
           chmod +x wizcli
 
       - name: Remove Wiz Connector
