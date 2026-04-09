@@ -30,7 +30,6 @@ function show(el) {
 function hide(el) {
   el.classList.add('hidden');
 }
-
 function setActiveNav(targetView) {
   document.querySelectorAll('.nav-item').forEach((btn) => {
     const view = btn.getAttribute('data-view');
@@ -41,8 +40,13 @@ function setActiveNav(targetView) {
     }
   });
 
-  document.querySelectorAll('.content-view').forEach((section) => {
-    if (section.id === `view-${targetView}`) {
+  document.querySelectorAll('.content-view').forEach((v) => hide(v));
+  show($(`view-${targetView}`));
+
+  // Force data refresh when switching views
+  initialiseData();
+}
+
       section.classList.remove('hidden');
     } else {
       section.classList.add('hidden');
