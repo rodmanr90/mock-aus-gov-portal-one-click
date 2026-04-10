@@ -1,12 +1,12 @@
 {
   "countryLine": "Commonwealth of Australia",
   "systemName": "Secure Collaboration Portal",
-  "departmentFull": "Department of Parliamentary Services",
-  "shortName": "DPS",
+  "departmentFull": "Department of Finance",
+  "shortName": "Finance",
   "loginTitle": "Privileged Access Sign‑in",
-  "loginBlurb": "This system is restricted to authorised Department of Parliamentary Services personnel. Unauthorised access is prohibited.",
+  "loginBlurb": "This system is restricted to authorised Department of Finance personnel. Unauthorised access is prohibited.",
   "google_analytics_key": "G-ABC123XYZ_SECRET_456",
-  "accentColor": "#ef4444",
-  "headerStart": "#450a0a",
-  "headerEnd": "#7f1d1d"
+  "accentColor": "#f59e0b",
+  "headerStart": "#451a03",
+  "headerEnd": "#78350f"
 }
