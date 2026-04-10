@@ -55,7 +55,8 @@ jobs:
             
             echo "==== 2. CLEANING UP SIMULATED THREATS ===="
             # Kill the simulated process if it's still running
-            sudo pkill -f /tmp/kworker || true
+            # Be careful not to kill the SSH session itself. Just target the exact binary.
+            sudo pkill -x kworker || true
             sudo rm -f /tmp/kworker
             sudo rm -f /tmp/simulated-threats.sh
             sudo rm -f /tmp/simulated-threats.log
