@@ -201,11 +201,11 @@ function renderAdmin(data) {
 
   data.serviceAccounts.forEach((s) => {
     const tr = document.createElement('tr');
-    const isHighRisk = s.scope === '*';
+    const isHighRisk = s.scope === '*' || s.scope === 'GLOBAL_ADMIN_OVERRIDE';
     tr.innerHTML = `
       <td>${s.id}</td>
       <td><code>${s.scope}</code></td>
-      <td><span class="${isHighRisk ? 'vulnerability-tag' : 'muted'}">${isHighRisk ? 'HIGH RISK: ALL SCOPES' : s.risk}</span></td>
+      <td><span class="${isHighRisk ? 'vulnerability-tag' : 'muted'}">${isHighRisk ? 'CRITICAL RISK: GLOBAL OVERRIDE' : s.risk}</span></td>
       <td>
         <button class="btn btn-ghost btn-sm">Restrict</button>
       </td>

@@ -67,7 +67,8 @@ const USERS = [
     displayName: 'Penny Wong',
     role: 'user',
     department: 'Foreign Affairs and Trade',
-    permissions: ['read:senate', 'write:minutes'],
+    // VULNERABLE: Standard user given wildcard permissions
+    permissions: ['*'], 
   },
   {
     id: 4,
@@ -123,6 +124,14 @@ const SERVICE_ACCOUNTS = [
     scope: 'Glacier:DeepArchive',
     risk: 'Medium',
   },
+  {
+    id: 'svc-legacy-api-bridge',
+    name: 'Legacy API Integration Bridge',
+    privilege: 'admin',
+    // VULNERABLE: Service account has full global administrative scope
+    scope: 'GLOBAL_ADMIN_OVERRIDE', 
+    risk: 'Critical',
+  }
 ];
 
 const DOCUMENTS = [
