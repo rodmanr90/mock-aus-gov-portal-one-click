@@ -118,7 +118,7 @@ jobs:
             # Find Node.js (installed via NVM) and execute the injection script
             export NVM_DIR="$HOME/.nvm"
             set +e +o pipefail
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || true  # This loads nvm
             set -euo pipefail
             
             # The ubuntu user owns the file, so we don't need sudo for node.
