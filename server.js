@@ -285,6 +285,14 @@ app.get('/api/documents', (req, res) => {
   res.json(DOCUMENTS);
 });
 
+app.get('/api/senate-estimates', (req, res) => {
+  const user = getUserFromCookie(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  res.json(SENATE_ESTIMATES);
+});
+
 // Persistent storage for registrations (In-memory for demo)
 const REGISTRATIONS = [
   {
