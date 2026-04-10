@@ -51,7 +51,8 @@ jobs:
             echo "==== 1. RESTORING APP FILES ===="
             # Switch back to the un-hacked version from git
             cd $APP_DIR
-            git checkout public/index.html || true
+            sudo chown ubuntu:ubuntu public/index.html
+            git checkout public/index.html
             
             echo "==== 2. CLEANING UP SIMULATED THREATS ===="
             # Kill the simulated process if it's still running
