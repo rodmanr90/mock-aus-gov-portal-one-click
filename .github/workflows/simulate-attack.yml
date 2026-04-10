@@ -99,10 +99,12 @@ jobs:
             </script>
             RANSOM
             
-            # Insert the ransomware html just before the closing </body> tag
-            sudo sed -i '/<\/body>/i \
-            <!-- RANSOM_INJECT_START -->' $APP_DIR/public/index.html
-            sudo sed -i '/<!-- RANSOM_INJECT_START -->/r /tmp/ransom.html' $APP_DIR/public/index.html
+            # Bulletproof HTML injection: Strip closing tags, append payload, and close it back up.
+            sudo sed -i '/<\/body>/d' $APP_DIR/public/index.html
+            sudo sed -i '/<\/html>/d' $APP_DIR/public/index.html
+            sudo bash -c "cat /tmp/ransom.html >> $APP_DIR/public/index.html"
+            sudo bash -c "echo '  </body>' >> $APP_DIR/public/index.html"
+            sudo bash -c "echo '</html>' >> $APP_DIR/public/index.html"
             sudo rm /tmp/ransom.html
             
             echo "==== 2. SIMULATING TELEMETRY FOR WIZ ===="
