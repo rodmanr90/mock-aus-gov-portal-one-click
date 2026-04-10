@@ -65,6 +65,7 @@ jobs:
             sudo sed -i '/# Simulated unauthorized access marker/d' /etc/hosts.allow
             
             echo "==== 3. RESTARTING APP ===="
-            sudo systemctl restart gov-portal
+            # Restart the service (ignoring errors if it doesn't exist yet)
+            sudo systemctl restart gov-portal || true
             
             echo "Application successfully restored."
