@@ -1,0 +1,67 @@
+name: 🚨 Simulate Attack & Defacement
+
+on:
+  workflow_dispatch:
+    inputs:
+      attacker_name:
+        description: 'Attacker Name for Defacement Banner'
+        required: true
+        default: 'Anonymous'
+      ssh_host:
+        description: 'EC2 IP Address'
+        required: true
+
+jobs:
+  simulate-attack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deface
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ github.event.inputs.ssh_host }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            APP_DIR="/opt/mock-aus-gov-portal"
+            
+            echo "==== 1. DEFACING WEBSITE ===="
+            # Injecting the banner directly into the HTML
+            sudo sed -i "s|<body>|<body><div id='hacked-banner' style='background: red; color: white; text-align: center; padding: 20px; font-size: 30px; font-family: monospace; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 9999; animation: blink 1s infinite;'>PwNeD by ${{ github.event.inputs.attacker_name }}</div><style>@keyframes blink { 50% { opacity: 0.5; } }</style>|g" $APP_DIR/public/index.html
+            
+            echo "==== 2. SIMULATING TELEMETRY FOR WIZ ===="
+            
+            # Start a background script that generates safe, simulated threat telemetry
+            cat << 'SCRIPT' > /tmp/simulated-threats.sh
+            #!/bin/bash
+            
+            # Simulating an unauthorized Port Scan (Localhost only for safety)
+            echo "Simulating port scan..."
+            sudo apt-get update && sudo apt-get install nmap -y
+            nmap -sS -p 1-1024 localhost > /dev/null 2>&1
+            
+            # Simulating Crypto-mining DNS resolution (safe queries to trigger Threat Intel)
+            echo "Simulating crypto-miner DNS lookup..."
+            dig +short pool.supportxmr.com > /dev/null 2>&1
+            dig +short xmr.crypto-pool.fr > /dev/null 2>&1
+            
+            # Simulating IMDSv1 Meta-data scraping (Cloud reconnaissance)
+            echo "Simulating IMDS scraping..."
+            curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/ > /dev/null 2>&1
+            
+            # Simulating Suspicious Execution (Kworker masquerade)
+            echo "Simulating suspicious process execution..."
+            cp /bin/bash /tmp/kworker
+            /tmp/kworker -c 'sleep 5' &
+            
+            # Simulating Privilege Escalation Indicators (Modifying sensitive file safely)
+            echo "Simulating PrivEsc indicator..."
+            sudo bash -c 'echo "# Simulated unauthorized access marker" >> /etc/hosts.allow'
+
+            echo "Threat simulation completed."
+            SCRIPT
+            
+            chmod +x /tmp/simulated-threats.sh
+            # Run in background so the workflow completes
+            nohup /tmp/simulated-threats.sh > /tmp/simulated-threats.log 2>&1 &

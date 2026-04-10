@@ -40,9 +40,6 @@ on:
           - medium
           - high
         default: 'low'
-  push:
-    branches:
-      - main
 
 jobs:
   provision-and-deploy:

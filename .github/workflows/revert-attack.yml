@@ -1,0 +1,43 @@
+name: 🔄 Revert Attack & Restore App
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh_host:
+        description: 'EC2 IP Address'
+        required: true
+
+jobs:
+  revert-attack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Restore
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ github.event.inputs.ssh_host }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            APP_DIR="/opt/mock-aus-gov-portal"
+            
+            echo "==== 1. RESTORING APP FILES ===="
+            # Switch back to the un-hacked version from git
+            cd $APP_DIR
+            sudo git restore public/index.html
+            
+            echo "==== 2. CLEANING UP SIMULATED THREATS ===="
+            # Kill the simulated process if it's still running
+            sudo pkill -f /tmp/kworker || true
+            sudo rm -f /tmp/kworker
+            sudo rm -f /tmp/simulated-threats.sh
+            sudo rm -f /tmp/simulated-threats.log
+            
+            # Remove the simulated host file entry
+            sudo sed -i '/# Simulated unauthorized access marker/d' /etc/hosts.allow
+            
+            echo "==== 3. RESTARTING APP ===="
+            sudo systemctl restart gov-portal
+            
+            echo "Application successfully restored."
