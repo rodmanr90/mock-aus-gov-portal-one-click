@@ -53,6 +53,9 @@ jobs:
             APP_DIR="/opt/mock-aus-gov-portal"
             
             echo "==== 1. DEFACING WEBSITE ===="
+            # Navigate into the app directory so git and sed can find the files
+            cd $APP_DIR
+            
             # 1a. Ensure a clean slate in case of previous failed injections
             git config --global --add safe.directory $APP_DIR
             sudo -u ubuntu git restore public/index.html || true
