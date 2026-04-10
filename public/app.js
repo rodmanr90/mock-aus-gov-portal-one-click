@@ -47,12 +47,6 @@ function setActiveNav(targetView) {
   initialiseData();
 }
 
-      section.classList.remove('hidden');
-    } else {
-      section.classList.add('hidden');
-    }
-  });
-}
 
 function renderDocuments(docs) {
   const tbody = $('documents-body');
